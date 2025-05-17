@@ -1,26 +1,39 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
-function Login() {
+// ✅ Added setIsLoggedIn as prop
+function Login({ setIsLoggedIn }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     if (!email || !password) {
       setError('Please enter both email and password.');
       return;
     }
+
     setError('');
-    alert(`Logged in as ${email}`);
+
+    // ✅ Dummy login check (replace later with API logic)
+    if (email === 'admin@123' && password === 'admin') {
+      toast.success('Login successful ✅');
+      setIsLoggedIn(true); // ✅ Now user is marked as logged in
+      navigate('/dashboard'); // ✅ Navigate to Dashboard
+    } else {
+      toast.error('Invalid credentials ❌');
+    }
   };
 
   return (
     <div className="wrapper"> {/* ✅ OUTERMOST DIV for center fix */}
       <div className="container">
         <div className="form-box">
-          <h2>Login to Carteza ERP</h2>
+          <h2>Login to Carteza</h2>
           <form onSubmit={handleSubmit}>
             <input
               type="email"

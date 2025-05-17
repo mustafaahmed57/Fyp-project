@@ -44,7 +44,7 @@ body {
 }
 
 .form-box input {
-  width: 100%;
+  width: 90%;
   padding: 12px 14px;
   margin-bottom: 16px;
   border: 1px solid #ccc;
@@ -498,4 +498,20 @@ DATA WORK HERE */
 
 .delete-btn:hover {
   background-color: #b52b27;
+}
+
+
+.not-found-container {
+  text-align: center;
+  padding: 50px 20px;
+}
+
+.back-btn {
+  background-color: #3498db;
+  color: white;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
 }

@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import FormBuilder from '../components/FormBuilder';
 import DataTable from '../components/DataTable';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 
 function GoodsReceipt() {
   const [receipts, setReceipts] = useState([]);
+  const navigate = useNavigate();
+
 
   const fields = [
     { name: 'poID', label: 'PO ID', type: 'number' },
@@ -26,6 +29,9 @@ function GoodsReceipt() {
   const newEntry = { ...data, ReceiptID: receipts.length + 1, ReceiptDate: receiptDate };
   setReceipts((prev) => [...prev, newEntry]);
   toast.success("Goods Received ✅");
+   setTimeout(() => {
+      navigate('/supplier-invoice'); // ✅ Redirect to PO
+    }, 3000);
 };
 
 

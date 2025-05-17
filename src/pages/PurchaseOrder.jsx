@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import FormBuilder from '../components/FormBuilder';
 import DataTable from '../components/DataTable';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 
 function PurchaseOrder() {
   const [orders, setOrders] = useState([]);
+  const navigate = useNavigate();
+
 
   const fields = [
     { name: 'requestID', label: 'Request ID', type: 'number' },
@@ -45,6 +48,9 @@ function PurchaseOrder() {
   };
   setOrders((prev) => [...prev, newEntry]);
   toast.success("Purchase Order created");
+  setTimeout(() => {
+  navigate('/goods-receipt'); // ✅ Redirect to PO
+}, 3000);
 };
 
 

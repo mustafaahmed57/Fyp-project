@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import FormBuilder from '../components/FormBuilder';
 import DataTable from '../components/DataTable';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 
 function SalesOrder() {
   const [orders, setOrders] = useState([]);
+  const navigate = useNavigate();
 
   const fields = [
     { name: 'customerName', label: 'Customer Name', type: 'text' },
@@ -39,6 +41,9 @@ function SalesOrder() {
   };
   setOrders((prev) => [...prev, newEntry]);
   toast.success("Sales Order created ✅");
+   setTimeout(() => {
+      navigate('/delivery-note'); // ✅ Redirect to PO
+    }, 3000);
 };
 
 

@@ -7,7 +7,6 @@ import { toast } from 'react-toastify'; // ✅ Toast import
 
 function SupplierInvoice() {
   const [invoices, setInvoices] = useState([]);
-
   const fields = [
     { name: 'grnID', label: 'GRN ID', type: 'number' },
     { name: 'supplierName', label: 'Supplier Name', type: 'text' },
@@ -52,6 +51,7 @@ function SupplierInvoice() {
 
     setInvoices((prev) => [...prev, newInvoice]);
     toast.success("Supplier Invoice generated ✅"); // ✅ Toast here
+     toast.success("Purchase Order created");
   };
 
   const columns = [

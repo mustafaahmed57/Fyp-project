@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import FormBuilder from '../components/FormBuilder';
 import DataTable from '../components/DataTable';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 
 function PurchaseRequest() {
   const [requests, setRequests] = useState([]);
+  const navigate = useNavigate();
+
 
   const fields = [
     { name: 'requestedBy', label: 'Requested By', type: 'text' },
@@ -27,6 +30,9 @@ function PurchaseRequest() {
   const newEntry = { ...data, RequestID: requests.length + 1, RequestDate: requestDate };
   setRequests((prev) => [...prev, newEntry]);
   toast.success("Purchase Request submitted ");
+  setTimeout(() => {
+  navigate('/purchase-order'); // ✅ Redirect to PO
+}, 3000);
 };
 
 

@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import FormBuilder from '../components/FormBuilder';
 import DataTable from '../components/DataTable';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 
 function SalesInquiry() {
   const [inquiries, setInquiries] = useState([]);
+  const navigate = useNavigate();
+
 
   const fields = [
     { name: 'customerName', label: 'Customer Name', type: 'text' },
@@ -30,6 +33,9 @@ function SalesInquiry() {
   const newEntry = { ...data, InquiryID: inquiries.length + 1, InquiryDate: inquiryDate };
   setInquiries((prev) => [...prev, newEntry]);
   toast.success("Sales Inquiry submitted ✅");
+   setTimeout(() => {
+      navigate('/sales-order'); // ✅ Redirect to PO
+    }, 3000);
 };
 
   const columns = [
