@@ -11,10 +11,15 @@ import Users from './pages/Users';
 import SalesInquiry from './pages/SalesInquiry';
 import SalesOrder from './pages/SalesOrder';
 import DeliveryNote from './pages/DeliveryNote';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
+
 
 
 function App() {
+
   return (
+    <>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
@@ -37,6 +42,9 @@ function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    <ToastContainer position="top-right" autoClose={2000} />
+    </>
+    
   );
 }
 

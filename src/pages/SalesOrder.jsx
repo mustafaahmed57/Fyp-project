@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import FormBuilder from '../components/FormBuilder';
 import DataTable from '../components/DataTable';
+import { toast } from 'react-toastify';
+
 
 function SalesOrder() {
   const [orders, setOrders] = useState([]);
@@ -12,19 +14,33 @@ function SalesOrder() {
     { name: 'pricePerUnit', label: 'Price Per Unit', type: 'number' },
   ];
 
+  // const handleSubmit = (data) => {
+  //   const orderDate = new Date().toISOString().split('T')[0]; // auto-fill current date
+  //   const totalAmount = parseFloat(data.quantityOrdered || 0) * parseFloat(data.pricePerUnit || 0);
+
+  //   const newEntry = {
+  //     ...data,
+  //     TotalAmount: totalAmount,
+  //     OrderID: orders.length + 1,
+  //     OrderDate: orderDate,
+  //   };
+
+  //   setOrders((prev) => [...prev, newEntry]);
+  // };
+
   const handleSubmit = (data) => {
-    const orderDate = new Date().toISOString().split('T')[0]; // auto-fill current date
-    const totalAmount = parseFloat(data.quantityOrdered || 0) * parseFloat(data.pricePerUnit || 0);
-
-    const newEntry = {
-      ...data,
-      TotalAmount: totalAmount,
-      OrderID: orders.length + 1,
-      OrderDate: orderDate,
-    };
-
-    setOrders((prev) => [...prev, newEntry]);
+  const orderDate = new Date().toISOString().split('T')[0];
+  const totalAmount = parseFloat(data.quantityOrdered || 0) * parseFloat(data.pricePerUnit || 0);
+  const newEntry = {
+    ...data,
+    OrderID: orders.length + 1,
+    OrderDate: orderDate,
+    TotalAmount: totalAmount
   };
+  setOrders((prev) => [...prev, newEntry]);
+  toast.success("Sales Order created ✅");
+};
+
 
   const columns = [
     'OrderID',

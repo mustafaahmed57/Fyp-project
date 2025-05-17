@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import FormBuilder from '../components/FormBuilder';
 import DataTable from '../components/DataTable';
+import { toast } from 'react-toastify';
+
 
 function GoodsReceipt() {
   const [receipts, setReceipts] = useState([]);
@@ -13,11 +15,19 @@ function GoodsReceipt() {
     { name: 'receiptDate', label: 'Receipt Date', type: 'date' },
   ];
 
+  // const handleSubmit = (data) => {
+  //   const grnID = receipts.length + 1;
+  //   const newEntry = { ...data, grnID };
+  //   setReceipts((prev) => [...prev, newEntry]);
+  // };
+
   const handleSubmit = (data) => {
-    const grnID = receipts.length + 1;
-    const newEntry = { ...data, grnID };
-    setReceipts((prev) => [...prev, newEntry]);
-  };
+  const receiptDate = new Date().toISOString().split('T')[0];
+  const newEntry = { ...data, ReceiptID: receipts.length + 1, ReceiptDate: receiptDate };
+  setReceipts((prev) => [...prev, newEntry]);
+  toast.success("Goods Received ✅");
+};
+
 
   const columns = [
     'grnID',

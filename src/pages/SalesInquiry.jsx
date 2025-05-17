@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import FormBuilder from '../components/FormBuilder';
 import DataTable from '../components/DataTable';
+import { toast } from 'react-toastify';
+
 
 function SalesInquiry() {
   const [inquiries, setInquiries] = useState([]);
@@ -13,15 +15,22 @@ function SalesInquiry() {
     { name: 'quantityRequested', label: 'Quantity Requested', type: 'number' },
   ];
 
+  // const handleSubmit = (data) => {
+  //   const inquiryDate = new Date().toISOString().split('T')[0]; // auto-fill current date
+  //   const newEntry = {
+  //     ...data,
+  //     InquiryID: inquiries.length + 1,
+  //     InquiryDate: inquiryDate,
+  //   };
+  //   setInquiries((prev) => [...prev, newEntry]);
+  // };
+
   const handleSubmit = (data) => {
-    const inquiryDate = new Date().toISOString().split('T')[0]; // auto-fill current date
-    const newEntry = {
-      ...data,
-      InquiryID: inquiries.length + 1,
-      InquiryDate: inquiryDate,
-    };
-    setInquiries((prev) => [...prev, newEntry]);
-  };
+  const inquiryDate = new Date().toISOString().split('T')[0];
+  const newEntry = { ...data, InquiryID: inquiries.length + 1, InquiryDate: inquiryDate };
+  setInquiries((prev) => [...prev, newEntry]);
+  toast.success("Sales Inquiry submitted ✅");
+};
 
   const columns = [
     'InquiryID',

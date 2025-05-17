@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import FormBuilder from '../components/FormBuilder';
 import DataTable from '../components/DataTable';
+import { toast } from 'react-toastify';
+
 
 function DeliveryNote() {
   const [deliveries, setDeliveries] = useState([]);
@@ -10,17 +12,29 @@ function DeliveryNote() {
     { name: 'deliveredQuantity', label: 'Delivered Quantity', type: 'number' },
   ];
 
+  // const handleSubmit = (data) => {
+  //   const deliveryDate = new Date().toISOString().split('T')[0]; // auto-fill current date
+
+  //   const newEntry = {
+  //     ...data,
+  //     DeliveryID: deliveries.length + 1,
+  //     DeliveryDate: deliveryDate,
+  //   };
+
+  //   setDeliveries((prev) => [...prev, newEntry]);
+  // };
+
   const handleSubmit = (data) => {
-    const deliveryDate = new Date().toISOString().split('T')[0]; // auto-fill current date
-
-    const newEntry = {
-      ...data,
-      DeliveryID: deliveries.length + 1,
-      DeliveryDate: deliveryDate,
-    };
-
-    setDeliveries((prev) => [...prev, newEntry]);
+  const deliveryDate = new Date().toISOString().split('T')[0];
+  const newEntry = {
+    ...data,
+    DeliveryID: deliveries.length + 1,
+    DeliveryDate: deliveryDate
   };
+  setDeliveries((prev) => [...prev, newEntry]);
+  toast.success("Delivery Note submitted ✅");
+};
+
 
   const columns = [
     'DeliveryID',

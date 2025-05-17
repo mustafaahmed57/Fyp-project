@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import FormBuilder from '../components/FormBuilder';
 import DataTable from '../components/DataTable';
+import { toast } from 'react-toastify'; // ✅ Toast import
+
+
 
 function SupplierInvoice() {
   const [invoices, setInvoices] = useState([]);
@@ -13,6 +16,24 @@ function SupplierInvoice() {
     { name: 'pricePerUnit', label: 'Price Per Unit', type: 'number' },
     { name: 'invoiceDate', label: 'Invoice Date', type: 'date' },
   ];
+
+  // const handleSubmit = (data) => {
+  //   const invoiceID = invoices.length + 1;
+  //   const totalAmount = data.quantityInvoiced * data.pricePerUnit;
+
+  //   const newInvoice = {
+  //     invoiceID,
+  //     grnID: data.grnID,
+  //     supplierName: data.supplierName,
+  //     productName: data.productName,
+  //     quantityInvoiced: data.quantityInvoiced,
+  //     pricePerUnit: data.pricePerUnit,
+  //     totalAmount,
+  //     invoiceDate: data.invoiceDate,
+  //   };
+
+  //   setInvoices((prev) => [...prev, newInvoice]);
+  // };
 
   const handleSubmit = (data) => {
     const invoiceID = invoices.length + 1;
@@ -30,6 +51,7 @@ function SupplierInvoice() {
     };
 
     setInvoices((prev) => [...prev, newInvoice]);
+    toast.success("Supplier Invoice generated ✅"); // ✅ Toast here
   };
 
   const columns = [

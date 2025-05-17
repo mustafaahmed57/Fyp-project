@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import FormBuilder from '../components/FormBuilder';
 import DataTable from '../components/DataTable';
+import { toast } from 'react-toastify';
+
 
 function PurchaseRequest() {
   const [requests, setRequests] = useState([]);
@@ -12,11 +14,21 @@ function PurchaseRequest() {
     { name: 'requiredDate', label: 'Required Date', type: 'date' },
   ];
 
+  // const handleSubmit = (data) => {
+  //   const requestDate = new Date().toISOString().split('T')[0]; // auto-today
+  //   const newEntry = { ...data, RequestID: requests.length + 1, RequestDate: requestDate };
+  //   setRequests((prev) => [...prev, newEntry]);
+  //   toast.success("Form submitted successfully ✅");
+
+  // };
+
   const handleSubmit = (data) => {
-    const requestDate = new Date().toISOString().split('T')[0]; // auto-today
-    const newEntry = { ...data, RequestID: requests.length + 1, RequestDate: requestDate };
-    setRequests((prev) => [...prev, newEntry]);
-  };
+  const requestDate = new Date().toISOString().split('T')[0];
+  const newEntry = { ...data, RequestID: requests.length + 1, RequestDate: requestDate };
+  setRequests((prev) => [...prev, newEntry]);
+  toast.success("Purchase Request submitted ");
+};
+
 
   const columns = [
     'RequestID',
