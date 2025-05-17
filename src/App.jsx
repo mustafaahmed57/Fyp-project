@@ -14,8 +14,10 @@ import SalesInquiry from './pages/SalesInquiry';
 import SalesOrder from './pages/SalesOrder';
 import DeliveryNote from './pages/DeliveryNote';
 import NotFound from './pages/NotFound';
-
-
+import ProductManagement from './pages/ProductManagement';
+import StockIn from './pages/StockIn';
+import StockOut from './pages/StockOut';
+import InventoryReport from './pages/InventoryReport';
 
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
@@ -45,6 +47,13 @@ function App() {
             <Route path="sales-inquiry" element={<SalesInquiry />} />
             <Route path="sales-order" element={<SalesOrder />} />
             <Route path="delivery-note" element={<DeliveryNote />} />
+
+            {/* ✅ Inventory Module pages */}
+            <Route path="product-management" element={<ProductManagement />} />
+            <Route path="stock-in" element={<StockIn />} />
+<Route path="stock-out" element={<StockOut />} />
+<Route path="inventory-report" element={<InventoryReport />} />
+
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

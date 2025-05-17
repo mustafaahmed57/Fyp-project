@@ -44,11 +44,17 @@ function Sidebar({ setIsLoggedIn }) {
         { name: 'Delivery Note', path: '/delivery-note' },
       ],
     },
-    {
-      name: 'Inventory',
-      icon: <FaWarehouse />,
-      children: [],
-    },
+   {
+  name: 'Inventory',
+  icon: <FaWarehouse />,
+  children: [
+  { name: 'Product Management', path: '/product-management' },
+  { name: 'Stock In', path: '/stock-in' },
+  { name: 'Stock Out', path: '/stock-out' },
+  { name: 'Inventory Report', path: '/inventory-report' },
+],
+},
+
     {
       name: 'Manufacturing',
       icon: <FaIndustry />,
