@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FormBuilder from '../components/FormBuilder';
 import DataTable from '../components/DataTable';
-import { toast } from 'react-toastify'; // ✅ Toast import
+import { getAllUsers, createUser, updateUser, deleteUser } from '../services/userService';
+import { toast } from 'react-toastify';
 
 function Users() {
   const [userList, setUserList] = useState([]);
-  const [editIndex, setEditIndex] = useState(null);
   const [formValues, setFormValues] = useState({});
+  const [isEditing, setIsEditing] = useState(false);
 
   const fields = [
     { name: 'fullName', label: 'Full Name', type: 'text' },
@@ -17,45 +18,69 @@ function Users() {
       label: 'Role',
       type: 'select',
       options: ['Admin', 'Procurement', 'Sales', 'Inventory', 'Manufacturing'],
-    }
+    },
   ];
 
-  const handleSubmit = (data) => {
-    if (editIndex !== null) {
-      const updatedList = [...userList];
-      updatedList[editIndex] = { ...updatedList[editIndex], ...data };
-      setUserList(updatedList);
-      setEditIndex(null);
-      toast.info("User updated successfully ✅"); // 🟡 Toast
-    } else {
-      const userId = userList.length + 1;
-      setUserList([...userList, { userId, ...data }]);
-      toast.success("New user created ✅"); // 🟢 Toast
+  // ✅ Fetch users from API
+  const loadUsers = async () => {
+    try {
+      const data = await getAllUsers();
+      setUserList(data);
+    } catch (error) {
+      console.error(error);
+      toast.error('Error loading users ❌');
     }
-    setFormValues({});
   };
 
-  const handleDelete = (index) => {
-    const updatedList = [...userList];
-    updatedList.splice(index, 1);
-    setUserList(updatedList);
-    toast.error("User deleted ❌"); // 🔴 Toast
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  // ✅ Submit (Create or Update)
+  const handleSubmit = async (data) => {
+    try {
+      if (isEditing && data.userID) {
+        await updateUser(data.userID, data); // ✅ fixed from userId to userID
+        toast.success('User updated ✅');
+      } else {
+        await createUser(data);
+        toast.success('User created ✅');
+      }
+      setFormValues({});
+      setIsEditing(false);
+      loadUsers();
+    } catch (error) {
+      console.error(error);
+      toast.error('Error creating/updating user ❌');
+    }
+  };
+
+  // ✅ Delete from API
+  const handleDelete = async (id) => {
+    try {
+      await deleteUser(id);
+      toast.success('User deleted ✅');
+      loadUsers();
+    } catch (error) {
+      console.error(error);
+      toast.error('Error deleting user ❌');
+    }
   };
 
   const handleEdit = (index) => {
     const selected = userList[index];
-    setEditIndex(index);
     setFormValues(selected);
+    setIsEditing(true);
   };
 
-  const columns = ['userId', 'fullName', 'email', 'role', 'actions'];
+  const columns = ['userID', 'fullName', 'email', 'role', 'actions']; // ✅ fixed userId → userID
 
   const tableRows = userList.map((user, index) => ({
     ...user,
     actions: (
       <div className="action-buttons">
         <button className="btn edit-btn" onClick={() => handleEdit(index)}>Edit</button>
-        <button className="btn delete-btn" onClick={() => handleDelete(index)}>Delete</button>
+        <button className="btn delete-btn" onClick={() => handleDelete(user.userID)}>Delete</button> {/* ✅ fixed userId → userID */}
       </div>
     )
   }));
@@ -63,7 +88,14 @@ function Users() {
   return (
     <div>
       <h2>User Management</h2>
-      <FormBuilder fields={fields} onSubmit={handleSubmit} initialValues={formValues} />
+      <FormBuilder
+        fields={fields}
+        onSubmit={handleSubmit}
+        initialValues={formValues}
+        checkDuplicate={(name, value) =>
+          name === 'email' ? userList.some(u => u.email === value && u.userID !== formValues.userID) : false // ✅ fixed userId → userID
+        }
+      />
       <DataTable columns={columns} rows={tableRows} />
     </div>
   );
