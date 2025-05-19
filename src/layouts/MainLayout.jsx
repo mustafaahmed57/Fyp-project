@@ -3,14 +3,13 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import { Outlet, useLocation } from 'react-router-dom';
 
-// ✅ Accept setIsLoggedIn as prop
-function MainLayout({ setIsLoggedIn }) {
+function MainLayout({ userRole }) {
   const location = useLocation();
 
   return (
     <div className="main-layout">
-      {/* ✅ Pass it to Sidebar */}
-      <Sidebar setIsLoggedIn={setIsLoggedIn} />
+      {/* ✅ Pass userRole to Sidebar */}
+      <Sidebar userRole={userRole} />
       <div className="main-content">
         <Header />
         <div className="page-content">

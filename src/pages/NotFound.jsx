@@ -1,8 +1,8 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 
 function NotFound() {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   return (
     <div className="wrapper">
@@ -11,12 +11,12 @@ function NotFound() {
         <p style={{ fontSize: '18px', marginBottom: '20px' }}>
           Oops! The page you're looking for doesn't exist.
         </p>
-        <button
+        {/* <button
           className="back-btn"
           onClick={() => navigate('/dashboard')}
         >
           🔙 Back to Dashboard
-        </button>
+        </button> */}
       </div>
     </div>
   );

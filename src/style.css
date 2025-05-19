@@ -615,3 +615,197 @@ DATA WORK HERE */
   color: white;
   border: 1px solid #0056b3;
 }
+
+.user-role {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* Role-specific badge colors */
+.admin-badge {
+  background-color: #e0f2fe;
+  color: #2563eb;
+}
+
+.inventory-badge {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.purchase-badge {
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+
+.sales-badge {
+  background-color: #ffedd5;
+  color: #c2410c;
+}
+
+.manufacturing-badge {
+  background-color: #ede9fe;
+  color: #7c3aed;
+}
+
+.default-badge {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.user-role {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.admin-badge {
+  background-color: #e0f2fe;
+  color: #2563eb;
+}
+.inventory-badge {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+.purchase-badge {
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+.sales-badge {
+  background-color: #ffedd5;
+  color: #c2410c;
+}
+.manufacturing-badge {
+  background-color: #ede9fe;
+  color: #7c3aed;
+}
+.default-badge {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+.header-datetime {
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #4b5563; /* Elegant slate/gray */
+  padding-right: 10px;
+  letter-spacing: 0.3px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-box {
+  background-color: white;
+  padding: 30px;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+.modal-box h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.modal-box p {
+  color: #555;
+  margin-bottom: 20px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.btn {
+  padding: 8px 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn.cancel {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.btn.logout {
+  background-color: #ef4444;
+  color: white;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-box {
+  background-color: white;
+  padding: 30px;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+.modal-box h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.modal-box p {
+  color: #555;
+  margin-bottom: 20px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.btn {
+  padding: 8px 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn.cancel {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.btn.logout {
+  background-color: #ef4444;
+  color: white;
+}

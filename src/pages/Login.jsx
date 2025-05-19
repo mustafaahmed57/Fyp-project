@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import axios from 'axios';
 
-// ✅ Added setIsLoggedIn as prop
-function Login({ setIsLoggedIn }) {
+function Login({ setIsLoggedIn, setUserRole }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!email || !password) {
@@ -17,20 +17,50 @@ function Login({ setIsLoggedIn }) {
       return;
     }
 
-    setError('');
+    try {
+      setError('');
 
-    // ✅ Dummy login check (replace later with API logic)
-    if (email === 'admin@123' && password === 'admin') {
-      toast.success('Login successful ✅');
-      setIsLoggedIn(true); // ✅ Now user is marked as logged in
-      navigate('/dashboard'); // ✅ Navigate to Dashboard
-    } else {
-      toast.error('Invalid credentials ❌');
+      // ✅ Send login request to backend
+      const response = await axios.get('http://localhost:5186/api/Users');
+      const users = response.data;
+
+      // ✅ Check credentials
+      const foundUser = users.find(u => u.email === email && u.password === password);
+
+      if (foundUser) {
+        setIsLoggedIn(true);
+        setUserRole(foundUser.role); // ✅ Set user role globally
+        toast.success(`Welcome, ${foundUser.fullName}`);
+
+        // ✅ Save user in localStorage for WelcomePage
+        localStorage.setItem('loggedInUser', JSON.stringify(foundUser));
+
+        // ✅ Redirect based on role
+        switch (foundUser.role.toLowerCase()) {
+          case 'admin':
+            navigate('/dashboard');
+            break;
+          case 'inventory':
+          case 'purchase':
+          case 'sales':
+          case 'manufacturing':
+            navigate('/welcome');
+            break;
+          default:
+            navigate('/404');
+            break;
+        }
+      } else {
+        toast.error('Invalid credentials ❌');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Login failed. Server error ❌');
     }
   };
 
   return (
-    <div className="wrapper"> {/* ✅ OUTERMOST DIV for center fix */}
+    <div className="wrapper">
       <div className="container">
         <div className="form-box">
           <h2>Login to Carteza</h2>

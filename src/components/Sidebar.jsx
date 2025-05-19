@@ -1,99 +1,100 @@
 import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom'; // ✅ Added useNavigate
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  FaChevronDown,
-  FaChevronUp,
-  FaShoppingCart,
-  FaCashRegister,
-  FaWarehouse,
-  FaIndustry,
-  FaUsers,
-  FaHome,
-  FaSignOutAlt,
+  FaChevronDown, FaChevronUp, FaShoppingCart, FaCashRegister,
+  FaWarehouse, FaIndustry, FaUsers, FaHome, FaSignOutAlt,
 } from 'react-icons/fa';
-import { toast } from 'react-toastify'; // ✅ Add this
+import { toast } from 'react-toastify';
+import LogoutModal from '../components/LogoutModal'; // ✅ create this file below
 
+// ✅ Role-wise allowed modules
+const roleAccess = {
+  Admin: ['Dashboard', 'Purchase', 'Sales', 'Inventory', 'Manufacturing', 'Users'],
+  Procurement: ['Purchase'],
+  Sales: ['Sales'],
+  Inventory: ['Inventory'],
+  Manufacturing: ['Manufacturing'],
+};
 
-// ✅ Receive setIsLoggedIn as prop
-function Sidebar({ setIsLoggedIn }) {
+const sidebarModules = [
+  {
+    name: 'Dashboard',
+    icon: <FaHome />,
+    children: [{ name: 'Dashboard', path: '/dashboard' }],
+  },
+  {
+    name: 'Purchase',
+    icon: <FaShoppingCart />,
+    children: [
+      { name: 'Purchase Request', path: '/purchase-request' },
+      { name: 'Purchase Order', path: '/purchase-order' },
+      { name: 'Goods Receipt', path: '/goods-receipt' },
+      { name: 'Supplier Invoice', path: '/supplier-invoice' },
+    ],
+  },
+  {
+    name: 'Sales',
+    icon: <FaCashRegister />,
+    children: [
+      { name: 'Sales Inquiry', path: '/sales-inquiry' },
+      { name: 'Sales Order', path: '/sales-order' },
+      { name: 'Delivery Note', path: '/delivery-note' },
+    ],
+  },
+  {
+    name: 'Inventory',
+    icon: <FaWarehouse />,
+    children: [
+      { name: 'Product Management', path: '/product-management' },
+      { name: 'Stock In', path: '/stock-in' },
+      { name: 'Stock Out', path: '/stock-out' },
+      { name: 'Inventory Report', path: '/inventory-report' },
+    ],
+  },
+  {
+    name: 'Manufacturing',
+    icon: <FaIndustry />,
+    children: [],
+  },
+  {
+    name: 'Users',
+    icon: <FaUsers />,
+    children: [{ name: 'User Management', path: '/users' }],
+  },
+];
+
+function Sidebar({ userRole }) {
   const [openModule, setOpenModule] = useState('Dashboard');
-  const navigate = useNavigate(); // ✅ For redirecting on logout
-
-  const sidebarModules = [
-    {
-      name: 'Dashboard',
-      icon: <FaHome />,
-      children: [{ name: 'Dashboard', path: '/dashboard' }],
-    },
-    {
-      name: 'Purchase',
-      icon: <FaShoppingCart />,
-      children: [
-        { name: 'Purchase Request', path: '/purchase-request' },
-        { name: 'Purchase Order', path: '/purchase-order' },
-        { name: 'Goods Receipt', path: '/goods-receipt' },
-        { name: 'Supplier Invoice', path: '/supplier-invoice' },
-      ],
-    },
-    {
-      name: 'Sales',
-      icon: <FaCashRegister />,
-      children: [
-        { name: 'Sales Inquiry', path: '/sales-inquiry' },
-        { name: 'Sales Order', path: '/sales-order' },
-        { name: 'Delivery Note', path: '/delivery-note' },
-      ],
-    },
-   {
-  name: 'Inventory',
-  icon: <FaWarehouse />,
-  children: [
-  { name: 'Product Management', path: '/product-management' },
-  { name: 'Stock In', path: '/stock-in' },
-  { name: 'Stock Out', path: '/stock-out' },
-  { name: 'Inventory Report', path: '/inventory-report' },
-],
-},
-
-    {
-      name: 'Manufacturing',
-      icon: <FaIndustry />,
-      children: [],
-    },
-    {
-      name: 'Users',
-      icon: <FaUsers />,
-      children: [{ name: 'User Management', path: '/users' }],
-    },
-  ];
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const navigate = useNavigate();
 
   const toggleModule = (name) => {
     setOpenModule((prev) => (prev === name ? '' : name));
   };
 
-  // const handleLogout = () => {
-  //   setIsLoggedIn(false); // ✅ Logout
-  //   navigate('/');        // ✅ Redirect to login
-  // };
+  const allowedModules = sidebarModules.filter((module) =>
+    roleAccess[userRole]?.includes(module.name)
+  );
 
-  const handleLogout = () => {
-  setIsLoggedIn(false);        // ✅ Remove session
-  toast.info('You have been logged out'); // ✅ Show toast
-  navigate('/');               // ✅ Back to login
-};
-
+  const confirmLogout = () => {
+    localStorage.removeItem('loggedInUser');
+    toast.success('Logout successful 👋');
+    navigate('/login');
+  };
 
   return (
     <div className="sidebar">
       <h2 className="logo">Carteza ERP</h2>
 
       <div className="modules">
-        {sidebarModules.map((module) => (
+        {allowedModules.map((module) => (
           <div key={module.name} className="module-section">
-            <div className="module-header" onClick={() => toggleModule(module.name)}>
+            <div
+              className="module-header"
+              onClick={() => toggleModule(module.name)}
+            >
               <span className="icon-text">
-                {module.icon}
-                <span>{module.name}</span>
+                {module.icon}<span>{module.name}</span>
               </span>
               <span className="chevron">
                 {openModule === module.name ? <FaChevronUp /> : <FaChevronDown />}
@@ -120,12 +121,18 @@ function Sidebar({ setIsLoggedIn }) {
         ))}
       </div>
 
-      {/* ✅ Working Logout Button */}
       <div className="logout-wrapper">
-        <button className="logout-btn" onClick={handleLogout}>
+        <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
           <FaSignOutAlt style={{ marginRight: '8px' }} /> Logout
         </button>
       </div>
+
+      {/* ✅ Custom logout modal */}
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={confirmLogout}
+      />
     </div>
   );
 }
