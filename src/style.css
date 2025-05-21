@@ -338,6 +338,7 @@ FORM WORK HERE */
   width: 100%;
   max-width: 1000px;      /* 🔥 allows wider layout */
   margin-left: 0;          /* align left like ERP style */
+  
 }
 
 
@@ -808,4 +809,14 @@ DATA WORK HERE */
 .btn.logout {
   background-color: #ef4444;
   color: white;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px 30px;
+}
+
+.full-width {
+  grid-column: 1 / -1;
 }
