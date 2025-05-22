@@ -1,9 +1,6 @@
-// ✅ Enhanced DataTable with Pagination, Search, and CSV Export
 import React, { useState } from 'react';
-// import { FaSearch } from 'react-icons/fa';
 
-
-function DataTable({ columns, rows }) {
+function DataTable({ columns = [], rows = [] }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,10 +32,35 @@ function DataTable({ columns, rows }) {
     document.body.removeChild(link);
   };
 
+  const getStatusBadge = (status) => {
+    const colors = {
+      Pending: '#facc15',       // Yellow
+      Approved: '#4ade80',      // Green
+      Dispatched: '#38bdf8',    // Blue
+      Rejected: '#f87171'       // Red
+    };
+
+    return (
+      <span
+        style={{
+          backgroundColor: colors[status] || '#e5e7eb',
+          color: '#fafafc',
+          padding: '4px 8px',
+          borderRadius: '8px',
+          fontWeight: 'bold',
+          display: 'inline-block',
+          minWidth: '80px',
+          textAlign: 'center'
+        }}
+      >
+        {status}
+      </span>
+    );
+  };
+
   return (
     <div className="data-table">
       <div className="search-container" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-        {/* <FaSearch className="search-icon" /> */}
         <input
           type="text"
           placeholder="Search..."
@@ -69,7 +91,15 @@ function DataTable({ columns, rows }) {
             currentRows.map((row, index) => (
               <tr key={index}>
                 {columns.map((col) => (
-                  <td key={col}>{row[col]}</td>
+                  <td key={col}>
+                    {col === 'addsOnRequired' ? (
+                      row[col] ? 'Yes' : 'No'
+                    ) : col === 'status' ? (
+                      getStatusBadge(row[col])
+                    ) : (
+                      row[col]
+                    )}
+                  </td>
                 ))}
               </tr>
             ))

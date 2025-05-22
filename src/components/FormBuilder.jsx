@@ -10,21 +10,27 @@ function FormBuilder({ fields, onSubmit, initialValues = {}, onFieldChange }) {
   }, [initialValues]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, type, checked, value } = e.target;
+    let finalValue = value;
 
-    // Update local state
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (type === 'checkbox') {
+      finalValue = checked;
+    } else if (type === 'select-one') {
+      const parsed = Number(value);
+      finalValue = isNaN(parsed) ? value : parsed;
+    }
 
-    // Also notify parent if custom change handler exists
+    setFormData((prev) => ({ ...prev, [name]: finalValue }));
+
     if (onFieldChange) {
-      onFieldChange(name, value);
+      onFieldChange(name, finalValue, setFormData); // 🔄 optional hook to auto-fill fields
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(formData);
-    setFormData({}); // Reset after submit
+    setFormData({});
   };
 
   return (
@@ -32,7 +38,19 @@ function FormBuilder({ fields, onSubmit, initialValues = {}, onFieldChange }) {
       <div className="form-grid">
         {fields.map((field) => (
           <div key={field.name} className={`form-group ${field.name === 'description' ? 'full-width' : ''}`}>
-            <label htmlFor={field.name}>{field.label}</label>
+            <label htmlFor={field.name}>
+              {field.label}
+              {field.type === 'checkbox' && (
+                <input
+                  id={field.name}
+                  type="checkbox"
+                  name={field.name}
+                  checked={formData[field.name] || false}
+                  onChange={handleChange}
+                  style={{ marginLeft: '10px' }}
+                />
+              )}
+            </label>
 
             {field.type === 'select' ? (
               <select
@@ -60,7 +78,7 @@ function FormBuilder({ fields, onSubmit, initialValues = {}, onFieldChange }) {
                 rows="4"
                 required
               />
-            ) : (
+            ) : field.type !== 'checkbox' ? (
               <input
                 id={field.name}
                 type={field.type || 'text'}
@@ -69,9 +87,9 @@ function FormBuilder({ fields, onSubmit, initialValues = {}, onFieldChange }) {
                 onChange={handleChange}
                 autoComplete="off"
                 required
-                disabled={field.disabled}
+                readOnly={field.disabled}
               />
-            )}
+            ) : null}
           </div>
         ))}
       </div>
