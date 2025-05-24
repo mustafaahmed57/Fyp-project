@@ -40,6 +40,7 @@ function Login({ setIsLoggedIn, setUserRole }) {
           case 'admin':
             navigate('/dashboard');
             break;
+            case 'procurement': 
           case 'inventory':
           case 'purchase':
           case 'sales':

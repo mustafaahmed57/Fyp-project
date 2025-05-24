@@ -1,72 +1,43 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 
 function Signup() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState('');
-  const [error, setError] = useState('');
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!name || !email || !password || !role) {
-      setError('All fields including role are required.');
-      return;
-    }
-    setError('');
-    alert(`Account created for ${name} as ${role}`);
-    // Later: send data to backend
-  };
-
   return (
     <div className="wrapper">
       <div className="container">
-        <div className="form-box">
-          <h2>Create a New Account</h2>
-          <form onSubmit={handleSubmit}>
-            <input
-              type="text"
-              placeholder="Full Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              required
-            >
-              <option value="">Select Role</option>
-              <option value="Admin">Admin</option>
-              <option value="Procurement">Procurement</option>
-              <option value="Sales">Sales</option>
-              <option value="Inventory">Inventory</option>
-              <option value="Manufacturing">Manufacturing</option>
-            </select>
+        <div className="form-box" style={{ textAlign: 'center' }}>
+          <h2 style={{ marginBottom: '10px' }}>🔒 Signup Disabled</h2>
+          <p style={{ fontSize: '16px', margin: '20px 0', lineHeight: '1.6' }}>
+            🚫 Self-registration is not allowed.<br />
+            👤 Please contact the admin to create your account.
+          </p>
+          <p style={{ marginTop: '30px', fontSize: '14px' }}>
+           <Link
+  to="/"
+  style={{
+    display: 'inline-block',
+    // marginTop: '10px',
+    padding: '10px 28px',
+    backgroundColor: '#2C74B3', // Button color
+    color: '#ffffff',
+    borderRadius: '25px',
+    fontWeight: '600',
+    fontSize: '15px',
+    boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+    transition: 'background-color 0.3s ease',
+    textDecoration: 'none'
+  }}
+  onMouseOver={(e) => {
+    e.target.style.backgroundColor = '#0f2e44'; // Your ERP theme color
+  }}
+  onMouseOut={(e) => {
+    e.target.style.backgroundColor = '#2C74B3';
+  }}
+>
+  Back to Login
+</Link>
 
-            {error && (
-              <p style={{ color: 'red', fontSize: '14px' }}>{error}</p>
-            )}
-            <button type="submit">Sign Up</button>
-          </form>
-          <div className="switch-link">
-            Already have an account? <Link to="/">Log in</Link>
-          </div>
+          </p>
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function DataTable({ columns = [], rows = [] }) {
+function DataTable({ columns = [], rows = [], columnLabels = {}, resolveDisplayValue }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,10 +34,10 @@ function DataTable({ columns = [], rows = [] }) {
 
   const getStatusBadge = (status) => {
     const colors = {
-      Pending: '#facc15',       // Yellow
-      Approved: '#4ade80',      // Green
-      Dispatched: '#38bdf8',    // Blue
-      Rejected: '#f87171'       // Red
+      Pending: '#facc15',
+      Approved: '#4ade80',
+      Dispatched: '#38bdf8',
+      Rejected: '#f87171'
     };
 
     return (
@@ -76,7 +76,7 @@ function DataTable({ columns = [], rows = [] }) {
         <thead>
           <tr>
             {columns.map((col) => (
-              <th key={col}>{col}</th>
+              <th key={col}>{columnLabels[col] || col}</th>
             ))}
           </tr>
         </thead>
@@ -90,22 +90,30 @@ function DataTable({ columns = [], rows = [] }) {
           ) : (
             currentRows.map((row, index) => (
               <tr key={index}>
-                {columns.map((col) => (
-                  <td key={col}>
-                    {col === 'addsOnRequired' ? (
-                      row[col] ? 'Yes' : 'No'
-                    ) : col === 'status' ? (
-                      getStatusBadge(row[col])
-                    ) : (
-                      row[col]
-                    )}
-                  </td>
-                ))}
+                {columns.map((col) => {
+                  const rawValue = row[col];
+                  const displayValue = resolveDisplayValue
+                    ? resolveDisplayValue(col, rawValue, row)
+                    : rawValue;
+
+                  return (
+                    <td key={col}>
+                      {col === 'addsOnRequired' ? (
+                        rawValue ? 'Yes' : 'No'
+                      ) : col === 'status' ? (
+                        getStatusBadge(rawValue)
+                      ) : (
+                        displayValue
+                      )}
+                    </td>
+                  );
+                })}
               </tr>
             ))
           )}
         </tbody>
       </table>
+      
 
       {/* Pagination */}
       <div className="pagination" style={{ marginTop: '10px', textAlign: 'center' }}>

@@ -115,7 +115,7 @@ function SalesOrder() {
   };
 
   const columns = [
-    'orderID',
+    // 'orderID',
     'orderCode',
     'inquiryID',
     'customerName',

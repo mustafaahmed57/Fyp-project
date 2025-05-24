@@ -142,7 +142,7 @@ function ProductManagement() {
   };
 
   const columns = [
-    'productID',
+    // 'productID',
     'productCode',
     'name',
     'category',

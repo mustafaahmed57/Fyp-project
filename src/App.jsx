@@ -20,6 +20,7 @@ import StockIn from './pages/StockIn';
 import StockOut from './pages/StockOut';
 import InventoryReport from './pages/InventoryReport';
 import WelcomePage from './pages/WelcomePage';
+import Suppliers from './pages/Suppliers';
 
 
 
@@ -56,6 +57,8 @@ function App() {
               <Route path="stock-out" element={<StockOut />} />
               <Route path="inventory-report" element={<InventoryReport />} />
               <Route path="/welcome" element={<WelcomePage />} />
+              <Route path="suppliers" element={<Suppliers />} />
+
             </Route>
           ) : (
             // ✅ Redirect if not logged in

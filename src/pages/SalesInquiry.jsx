@@ -62,7 +62,7 @@ function SalesInquiry() {
 
   // ✅ Columns to show in DataTable
   const columns = [
-    'inquiryID',
+    // 'inquiryID',
      'inquiryCode',
     'customerName',
     'customerContact',

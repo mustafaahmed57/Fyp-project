@@ -9,8 +9,8 @@ import LogoutModal from '../components/LogoutModal'; // ✅ create this file bel
 
 // ✅ Role-wise allowed modules
 const roleAccess = {
-  Admin: ['Dashboard', 'Purchase', 'Sales', 'Inventory', 'Manufacturing', 'Users'],
-  Procurement: ['Purchase'],
+  Admin: ['Dashboard', 'Purchase', 'Sales', 'Inventory', 'Manufacturing', 'Users', 'Vendor'],
+  Procurement: ['Purchase', 'Vendor'],
   Sales: ['Sales'],
   Inventory: ['Inventory'],
   Manufacturing: ['Manufacturing'],
@@ -51,6 +51,14 @@ const sidebarModules = [
       { name: 'Inventory Report', path: '/inventory-report' },
     ],
   },
+  {
+  name: 'Vendor',
+  icon: <FaUsers />, // or FaTruck or FaAddressBook if you want a different icon
+  children: [
+    { name: 'Suppliers', path: '/suppliers' }
+  ],
+},
+
   {
     name: 'Manufacturing',
     icon: <FaIndustry />,

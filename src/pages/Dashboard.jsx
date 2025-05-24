@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   BarChart, Bar, LineChart, Line,
   AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from 'recharts';
-
+import axios from 'axios';
 
 const salesData = [
   { name: 'Jan', sales: 3000 },
@@ -23,6 +23,36 @@ const inventoryData = [
 const COLORS = ['#0A2647', '#2C74B3', '#F1F6F9'];
 
 function Dashboard() {
+  const [summary, setSummary] = useState({
+    totalPOs: 0,
+    inventoryCount: 0,
+    salesOrders: 0
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [productsRes, poRes, soRes] = await Promise.all([
+          axios.get('http://localhost:5186/api/products'),
+          axios.get('http://localhost:5186/api/purchaseorder'),
+          axios.get('http://localhost:5186/api/salesorder')
+        ]);
+
+        const totalStock = productsRes.data.reduce((sum, item) => sum + (item.stock || 0), 0);
+
+        setSummary({
+          totalPOs: poRes.data.length,
+          inventoryCount: totalStock,
+          salesOrders: soRes.data.length
+        });
+      } catch (error) {
+        console.error("Dashboard data fetch failed", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <div className="dashboard">
       <h2>Welcome to Carteza ERP</h2>
@@ -30,15 +60,15 @@ function Dashboard() {
       <div className="card-grid">
         <div className="dashboard-card">
           <h3>🛒 Purchase Orders</h3>
-          <p>48</p>
+          <p>{summary.totalPOs}</p>
         </div>
         <div className="dashboard-card">
-          <h3>💰 Sales</h3>
-          <p>$125,000</p>
+          <h3>🛍️ Sales Orders</h3>
+          <p>{summary.salesOrders}</p>
         </div>
         <div className="dashboard-card">
           <h3>📦 Inventory Items</h3>
-          <p>320</p>
+          <p>{summary.inventoryCount}</p>
         </div>
         <div className="dashboard-card">
           <h3>🏭 Manufacturing</h3>
@@ -83,50 +113,49 @@ function Dashboard() {
           </ResponsiveContainer>
         </div>
 
-                <div className="chart-box">
-  <h4>Manufacturing Output</h4>
-  <ResponsiveContainer width="100%" height={300}>
-    <LineChart data={[
-      { month: 'Jan', units: 100 },
-      { month: 'Feb', units: 140 },
-      { month: 'Mar', units: 120 },
-      { month: 'Apr', units: 170 },
-      { month: 'May', units: 160 }
-    ]}>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="month" />
-      <YAxis />
-      <Tooltip />
-      <Line type="monotone" dataKey="units" stroke="#0A2647" strokeWidth={2} />
-    </LineChart>
-  </ResponsiveContainer>
-</div>
+        <div className="chart-box">
+          <h4>Manufacturing Output</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={[
+              { month: 'Jan', units: 100 },
+              { month: 'Feb', units: 140 },
+              { month: 'Mar', units: 120 },
+              { month: 'Apr', units: 170 },
+              { month: 'May', units: 160 }
+            ]}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="units" stroke="#0A2647" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
 
-<div className="chart-box">
-  <h4>Purchase Value Trend</h4>
-  <ResponsiveContainer width="100%" height={300}>
-    <AreaChart data={[
-      { month: 'Jan', amount: 2500 },
-      { month: 'Feb', amount: 4000 },
-      { month: 'Mar', amount: 3000 },
-      { month: 'Apr', amount: 4800 },
-      { month: 'May', amount: 4600 }
-    ]}>
-      <defs>
-        <linearGradient id="colorAmt" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="5%" stopColor="#2C74B3" stopOpacity={0.8}/>
-          <stop offset="95%" stopColor="#2C74B3" stopOpacity={0}/>
-        </linearGradient>
-      </defs>
-      <XAxis dataKey="month" />
-      <YAxis />
-      <CartesianGrid strokeDasharray="3 3" />
-      <Tooltip />
-      <Area type="monotone" dataKey="amount" stroke="#2C74B3" fillOpacity={1} fill="url(#colorAmt)" />
-    </AreaChart>
-  </ResponsiveContainer>
-</div>
-
+        <div className="chart-box">
+          <h4>Purchase Value Trend</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={[
+              { month: 'Jan', amount: 2500 },
+              { month: 'Feb', amount: 4000 },
+              { month: 'Mar', amount: 3000 },
+              { month: 'Apr', amount: 4800 },
+              { month: 'May', amount: 4600 }
+            ]}>
+              <defs>
+                <linearGradient id="colorAmt" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#2C74B3" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#2C74B3" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="month" />
+              <YAxis />
+              <CartesianGrid strokeDasharray="3 3" />
+              <Tooltip />
+              <Area type="monotone" dataKey="amount" stroke="#2C74B3" fillOpacity={1} fill="url(#colorAmt)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );

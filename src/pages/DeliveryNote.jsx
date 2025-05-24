@@ -86,7 +86,7 @@ function DeliveryNote() {
 
 
   const columns = [
-    'deliveryID',
+    // 'deliveryID',
     'deliveryCode',
     'salesOrderID',
     'customerName',
