@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
-function FormBuilder({ fields, onSubmit, initialValues = {}, onFieldChange }) {
+function FormBuilder({ fields, onSubmit, initialValues = {}, onFieldChange, checkDuplicate }) {
   const [formData, setFormData] = useState(initialValues);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (Object.keys(initialValues).length > 0) {
@@ -13,6 +14,14 @@ function FormBuilder({ fields, onSubmit, initialValues = {}, onFieldChange }) {
     const { name, type, checked, value } = e.target;
     let finalValue = value;
 
+    // ✅ Only block negative values for number inputs
+    if (type === 'number') {
+      const numericValue = parseFloat(value);
+      if (numericValue < 0) {
+        finalValue = '0';
+      }
+    }
+
     if (type === 'checkbox') {
       finalValue = checked;
     } else if (type === 'select-one') {
@@ -20,18 +29,52 @@ function FormBuilder({ fields, onSubmit, initialValues = {}, onFieldChange }) {
       finalValue = isNaN(parsed) ? value : parsed;
     }
 
+    // ✅ Check for duplicates in email and fullName
+    if (checkDuplicate && (name === 'email' || name === 'fullName')) {
+      if (checkDuplicate(name, finalValue)) {
+        setErrors((prev) => ({ ...prev, [name]: `${name === 'email' ? 'Email' : 'Full Name'} already exists` }));
+      } else {
+        setErrors((prev) => ({ ...prev, [name]: '' }));
+      }
+    }
+
     setFormData((prev) => ({ ...prev, [name]: finalValue }));
 
     if (onFieldChange) {
-      onFieldChange(name, finalValue, setFormData); // 🔄 optional hook to auto-fill fields
+      onFieldChange(name, finalValue, setFormData);
     }
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(formData);
-    setFormData({});
-  };
+  e.preventDefault();
+
+  // 🔁 Double check for duplicates during submit (especially if user skips blur)
+  let newErrors = {};
+
+  fields.forEach((field) => {
+    const value = formData[field.name];
+    if (checkDuplicate && (field.name === 'email' || field.name === 'fullName')) {
+      if (checkDuplicate(field.name, value)) {
+        newErrors[field.name] = `${field.label} already exists`;
+      }
+    }
+
+    // 🔒 Extra safety: no empty required fields
+    if (!value && field.type !== 'checkbox') {
+      newErrors[field.name] = `${field.label} is required`;
+    }
+  });
+
+  setErrors(newErrors);
+
+  if (Object.keys(newErrors).length > 0) {
+    return; // ❌ stop form submission if any errors exist
+  }
+
+  onSubmit(formData);
+  setFormData({});
+};
+
 
   return (
     <form className="form-builder" onSubmit={handleSubmit}>
@@ -88,8 +131,15 @@ function FormBuilder({ fields, onSubmit, initialValues = {}, onFieldChange }) {
                 autoComplete="off"
                 required
                 readOnly={field.disabled}
+                min={field.type === 'number' ? '0' : undefined} // HTML-level protection
               />
             ) : null}
+
+            {errors[field.name] && (
+              <span className="error-text" style={{ color: 'red', fontSize: '13px' }}>
+                {errors[field.name]}
+              </span>
+            )}
           </div>
         ))}
       </div>
