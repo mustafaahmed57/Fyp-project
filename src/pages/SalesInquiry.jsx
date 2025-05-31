@@ -6,77 +6,115 @@ import { useNavigate } from 'react-router-dom';
 
 function SalesInquiry() {
   const [inquiries, setInquiries] = useState([]);
+  const [customerOptions, setCustomerOptions] = useState([]);
+  const [productOptions, setProductOptions] = useState([]);
+  const [formValues, setFormValues] = useState({});
   const navigate = useNavigate();
 
-  // ✅ Form fields
+  const inquiryApi = 'http://localhost:5186/api/SalesInquiry';
+  const customerApi = 'http://localhost:5186/api/Customers/dropdown-with-details';
+  const productApi = 'http://localhost:5186/api/Products/dropdown-finished';
+
   const fields = [
-    { name: 'customerName', label: 'Customer Name', type: 'text' },
-    { name: 'customerContact', label: 'Customer Contact', type: 'text' },
-    { name: 'customerEmail', label: 'Customer Email', type: 'email' },
+    {
+      name: 'customerCode',
+      label: 'Customer',
+      type: 'select',
+      options: customerOptions.map(c => ({
+        value: c.customerCode,
+        label: `${c.customerCode} - ${c.name}`
+      }))
+    },
+    { name: 'customerName', label: 'Customer Name', type: 'text',readOnly: true },
+    { name: 'customerContact', label: 'Customer Contact', type: 'text',readOnly: true },
+    { name: 'customerEmail', label: 'Customer Email', type: 'email',readOnly: true },
     {
       name: 'productRequested',
       label: 'Product Requested',
       type: 'select',
-      options: ['Cart Model A', 'Cart Model B', 'Cart Model C']
+      options: productOptions
     },
     { name: 'quantityRequested', label: 'Quantity Requested', type: 'number' },
-    { name: 'addsOnRequired', label: 'Adds On Required?', type: 'checkbox' }
+    { name: 'addsOnRequired', label: 'Adds On Required?', type: 'checkbox',readOnly: true }
   ];
 
-  // ✅ Load existing inquiries
   useEffect(() => {
-    fetch('http://localhost:5186/api/SalesInquiry')
-      .then((res) => res.json())
-      .then((data) => setInquiries(data))
-      .catch((err) => {
-        console.error(err);
-        toast.error("Failed to load inquiries");
-      });
+    // Inquiries
+    fetch(inquiryApi)
+      .then(res => res.json())
+      .then(data => setInquiries(data))
+      .catch(() => toast.error("Failed to load inquiries"));
+
+    // Customers
+    fetch(customerApi)
+      .then(res => res.json())
+      .then(data => setCustomerOptions(data))
+      .catch(() => toast.error("Failed to load customers"));
+
+    // Products
+    fetch(productApi)
+      .then(res => res.json())
+      .then(data => setProductOptions(data))
+      .catch(() => toast.error("Failed to load products"));
   }, []);
 
-  // ✅ Handle form submission
-  const handleSubmit = async (data) => {
-    try {
-      const response = await fetch('http://localhost:5186/api/SalesInquiry', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setInquiries((prev) => [...prev, result]);
-        toast.success("Sales Inquiry submitted ✅");
-
-        setTimeout(() => {
-          navigate('/sales-order');
-        }, 3000);
-      } else {
-        toast.error("Submission failed ❌");
+  const handleFieldChange = (name, value, setForm) => {
+    if (name === 'customerCode') {
+      const selected = customerOptions.find(c => c.customerCode === value);
+      if (selected) {
+        setForm(prev => ({
+          ...prev,
+          customerCode: selected.customerCode,
+          customerName: selected.name,
+          customerContact: selected.contact,
+          customerEmail: selected.email,
+          addsOnRequired: selected.addsOnRequired
+        }));
       }
-    } catch (error) {
-      console.error(error);
-      toast.error("Server error ⚠");
     }
   };
 
-  // ✅ Columns to show in DataTable
+  const handleSubmit = async (data) => {
+    try {
+      const res = await fetch(inquiryApi, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (!res.ok) throw new Error("Save failed");
+      const saved = await res.json();
+      toast.success("Inquiry submitted ✅");
+      setInquiries(prev => [...prev, saved]);
+
+      setTimeout(() => navigate('/sales-order'), 2500);
+    } catch {
+      toast.error("Error saving inquiry ❌");
+    }
+  };
+
   const columns = [
-    // 'inquiryID',
-     'inquiryCode',
+    'inquiryCode',
+    'customerCode',
     'customerName',
     'customerContact',
     'customerEmail',
     'productRequested',
     'quantityRequested',
-    'inquiryDate',
-    'addsOnRequired'
+    'addsOnRequired',
+    'inquiryDate'
   ];
 
   return (
     <div style={{ paddingLeft: '30px', paddingRight: '30px' }}>
       <h2>Sales Inquiry</h2>
-      <FormBuilder fields={fields} onSubmit={handleSubmit} />
+      <FormBuilder
+        fields={fields}
+        onSubmit={handleSubmit}
+        formValues={formValues}
+        setFormValues={setFormValues}
+        onFieldChange={handleFieldChange}
+      />
       <DataTable columns={columns} rows={inquiries} />
     </div>
   );

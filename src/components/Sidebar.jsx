@@ -26,6 +26,7 @@ const sidebarModules = [
     name: 'Purchase',
     icon: <FaShoppingCart />,
     children: [
+      { name: 'Supplier Management', path: '/suppliers' },
       { name: 'Purchase Request', path: '/purchase-request' },
       { name: 'Purchase Order', path: '/purchase-order' },
       { name: 'Goods Receipt', path: '/goods-receipt' },
@@ -36,6 +37,7 @@ const sidebarModules = [
     name: 'Sales',
     icon: <FaCashRegister />,
     children: [
+      { name: 'Customers Management', path: '/customers' }, // ✅ NEW LINE
       { name: 'Sales Inquiry', path: '/sales-inquiry' },
       { name: 'Sales Order', path: '/sales-order' },
       { name: 'Delivery Note', path: '/delivery-note' },
@@ -51,13 +53,13 @@ const sidebarModules = [
       { name: 'Inventory Report', path: '/inventory-report' },
     ],
   },
-  {
-  name: 'Vendor',
-  icon: <FaUsers />, // or FaTruck or FaAddressBook if you want a different icon
-  children: [
-    { name: 'Suppliers', path: '/suppliers' }
-  ],
-},
+//   {
+//   name: 'Vendor',
+//   icon: <FaUsers />, // or FaTruck or FaAddressBook if you want a different icon
+//   children: [
+//     { name: 'Suppliers', path: '/suppliers' }
+//   ],
+// },
 
   {
     name: 'Manufacturing',

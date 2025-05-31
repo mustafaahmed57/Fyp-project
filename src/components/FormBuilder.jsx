@@ -60,9 +60,10 @@ function FormBuilder({ fields, onSubmit, initialValues = {}, onFieldChange, chec
     }
 
     // 🔒 Extra safety: no empty required fields
-    if (!value && field.type !== 'checkbox') {
-      newErrors[field.name] = `${field.label} is required`;
-    }
+  if (!value && field.type !== 'checkbox' && field.type !== 'hidden' && !field.readOnly) {
+  newErrors[field.name] = `${field.label} is required`;
+}
+
   });
 
   setErrors(newErrors);
@@ -91,6 +92,7 @@ function FormBuilder({ fields, onSubmit, initialValues = {}, onFieldChange, chec
                   checked={formData[field.name] || false}
                   onChange={handleChange}
                   style={{ marginLeft: '10px' }}
+                  disabled={field.readOnly} // ✅ Now supports read-only checkboxes
                 />
               )}
             </label>
@@ -130,7 +132,8 @@ function FormBuilder({ fields, onSubmit, initialValues = {}, onFieldChange, chec
                 onChange={handleChange}
                 autoComplete="off"
                 required
-                readOnly={field.disabled}
+                // readOnly={field.disabled}
+                readOnly={field.readOnly || field.disabled}
                 min={field.type === 'number' ? '0' : undefined} // HTML-level protection
               />
             ) : null}

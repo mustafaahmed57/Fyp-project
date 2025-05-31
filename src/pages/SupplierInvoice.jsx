@@ -2,19 +2,19 @@ import React, { useEffect, useState } from 'react';
 import FormBuilder from '../components/FormBuilder';
 import DataTable from '../components/DataTable';
 import { toast } from 'react-toastify';
+import InvoiceModal from '../components/InvoiceModal';
 import InvoicePrint from './InvoicePrint';
-import InvoiceModal from '../components/InvoiceModal'; // ✅ Your custom modal
 
 function SupplierInvoice() {
   const [formValues, setFormValues] = useState({});
   const [invoiceList, setInvoiceList] = useState([]);
   const [grnList, setGrnList] = useState([]);
 
-  // ✅ New modal logic
+  // ✅ Modal states
   const [showInvoice, setShowInvoice] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
 
-  // 🔁 Fetch all invoices
+  // Load Invoices
   const fetchInvoices = () => {
     fetch('http://localhost:5186/api/SupplierInvoice')
       .then(res => res.json())
@@ -22,7 +22,7 @@ function SupplierInvoice() {
       .catch(() => toast.error("Failed to load invoices"));
   };
 
-  // 🔁 Load GRNs for dropdown
+  // Load GRNs for dropdown
   const fetchGRNs = () => {
     fetch('http://localhost:5186/api/SupplierInvoice/grn-dropdown')
       .then(res => res.json())
@@ -39,52 +39,59 @@ function SupplierInvoice() {
     if (fieldName === 'grnID') {
       const selected = grnList.find(grn => grn.value === parseInt(value));
       if (selected) {
-        setFormValues(prev => ({
-          ...prev,
-          grnCode: selected.label,
-          supplierName: selected.supplierName,
-          productName: selected.productName,
-          quantityInvoiced: selected.quantity
-        }));
+        setFormValues(prev => {
+          const updated = {
+            ...prev,
+            grnID: selected.value,
+            grnCode: selected.label,
+            supplierName: selected.supplierName,
+            productName: selected.productName,
+            quantityInvoiced: selected.quantity,
+            pricePerUnit: selected.pricePerUnit.toString(),
+            totalAmount: (parseFloat(selected.pricePerUnit) * parseInt(selected.quantity)).toFixed(2)
+          };
+          return updated;
+        });
       }
+    }
+
+    if (fieldName === 'invoiceDate') {
+      setFormValues(prev => ({
+        ...prev,
+        invoiceDate: value
+      }));
     }
   };
 
-  const handleSubmit = (data) => {
-    fetch('http://localhost:5186/api/SupplierInvoice', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+ const handleSubmit = (data) => {
+  fetch('http://localhost:5186/api/SupplierInvoice', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+    .then(async res => {
+      if (!res.ok) {
+        const errorData = await res.json();
+        const message = errorData.title || "Failed to save invoice";
+        throw new Error(message);
+      }
+      return res.json();
     })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to save invoice");
-        return res.json();
-      })
-      .then(saved => {
-        toast.success("Supplier Invoice created ✅");
-        setFormValues({});
-        setInvoiceList(prev => [...prev, saved]);
-      })
-      .catch(err => toast.error(err.message));
-  };
+    .then(() => {
+      toast.success("Supplier Invoice created ✅");
+      setFormValues({});
+      fetchInvoices();
+    })
+    .catch(err => toast.error(err.message));
+};
 
-  // ✅ New modal open
+
   const handleViewInvoice = (invoice) => {
     setSelectedInvoice(invoice);
     setShowInvoice(true);
   };
 
-  // 🖨️ Old logic - now disabled
-  // const handlePrint = (invoice) => {
-  //   setPrintInvoice(invoice);
-  //   setTimeout(() => {
-  //     window.print();
-  //     setPrintInvoice(null);
-  //   }, 300);
-  // };
-
   const columns = [
-    // 'invoiceID',
     'sinvCode',
     'grnCode',
     'supplierName',
@@ -97,32 +104,15 @@ function SupplierInvoice() {
   ];
 
   const columnLabels = {
-    invoiceID: 'Invoice ID',
     sinvCode: 'Invoice Code',
     grnCode: 'GRN Code',
     supplierName: 'Supplier',
     productName: 'Product',
     quantityInvoiced: 'Quantity',
     pricePerUnit: 'Unit Price',
-    totalAmount: 'Total',
+    totalAmount: 'Total Amount',
     invoiceDate: 'Invoice Date',
     actions: 'Actions'
-  };
-
-  const resolveDisplayValue = (col, val, row) => {
-    if (col === 'totalAmount') {
-      return (row.quantityInvoiced * row.pricePerUnit).toFixed(2);
-    }
-    if (col === 'actions') {
-      return (
-        <button className="btn view" onClick={() => handleViewInvoice(row)}>
-          View Invoice
-        </button>
-        // 🖨️ Old logic
-        // <button onClick={() => handlePrint(row)}>🖨 Print</button>
-      );
-    }
-    return val;
   };
 
   const fields = [
@@ -131,9 +121,21 @@ function SupplierInvoice() {
     { name: 'supplierName', label: 'Supplier Name', type: 'text', disabled: true },
     { name: 'productName', label: 'Product Name', type: 'text', disabled: true },
     { name: 'quantityInvoiced', label: 'Quantity Invoiced', type: 'number', disabled: true },
-    { name: 'pricePerUnit', label: 'Price Per Unit', type: 'number' },
+    { name: 'pricePerUnit', label: 'Price Per Unit', type: 'number', disabled: true },
+    { name: 'totalAmount', label: 'Total Amount', type: 'number', disabled: true },
     { name: 'invoiceDate', label: 'Invoice Date', type: 'date' }
   ];
+
+  const resolveDisplayValue = (col, val, row) => {
+    if (col === 'actions') {
+      return (
+        <button className="btn view" onClick={() => handleViewInvoice(row)}>
+          View Invoice
+        </button>
+      );
+    }
+    return val;
+  };
 
   return (
     <div className="p-4">
@@ -154,14 +156,6 @@ function SupplierInvoice() {
         exportFileName="SupplierInvoices"
       />
 
-      {/* 🔒 Commented old inline print */}
-      {/* {printInvoice && (
-        <div style={{ display: 'none' }}>
-          <InvoicePrint data={printInvoice} />
-        </div>
-      )} */}
-
-      {/* ✅ New modal-based invoice preview */}
       <InvoiceModal isOpen={showInvoice} onClose={() => setShowInvoice(false)}>
         <InvoicePrint invoice={selectedInvoice} />
       </InvoiceModal>

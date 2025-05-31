@@ -11,6 +11,7 @@ function Suppliers() {
   const apiUrl = 'http://localhost:5186/api/Suppliers';
 
   const fields = [
+    { name: 'supplierCode', label: 'Supplier Code', type: 'text', readOnly: true }, // ✅ shown as non-editable
     { name: 'name', label: 'Name', type: 'text' },
     { name: 'contactPerson', label: 'Contact Person', type: 'text' },
     { name: 'phone', label: 'Phone', type: 'text' },
@@ -18,7 +19,7 @@ function Suppliers() {
     { name: 'address', label: 'Address', type: 'text' }
   ];
 
-  // 🔁 Fetch suppliers
+  // ✅ Fetch suppliers
   const fetchSuppliers = () => {
     fetch(apiUrl)
       .then(res => res.json())
@@ -32,30 +33,55 @@ function Suppliers() {
 
   // ✅ Submit handler
   const handleSubmit = async (data) => {
+    // ✅ Validate phone (exactly 11 digits)
+    if (!/^\d{11}$/.test(data.phone)) {
+      toast.error("Phone must be exactly 11 digits ❌");
+      return;
+    }
+
+    // ✅ Prevent duplicate name or email
+    const isDuplicate = suppliers.some((s, idx) =>
+      idx !== editIndex &&
+      (s.name === data.name || s.email === data.email)
+    );
+
+    if (isDuplicate) {
+      toast.error("Duplicate name or email ❌");
+      return;
+    }
+
     const method = editIndex !== null ? 'PUT' : 'POST';
     const url = editIndex !== null ? `${apiUrl}/${suppliers[editIndex].id}` : apiUrl;
+
+    // ✅ Remove supplierCode on create (backend will generate it)
+    const payload = method === 'POST'
+      ? { ...data, supplierCode: undefined }
+      : data;
 
     fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify(payload)
     })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to save");
+      .then(async res => {
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.message || "Failed");
+        }
         return res.json();
       })
       .then(() => {
-        toast.success(`Supplier ${editIndex !== null ? 'updated' : 'added'} successfully ✅`);
+        toast.success(`Supplier ${editIndex !== null ? 'updated' : 'created'} ✅`);
         setFormValues({});
         setEditIndex(null);
         fetchSuppliers();
       })
-      .catch(() => toast.error("Failed to save supplier ❌"));
+      .catch((err) => toast.error(err.message || "Failed to save ❌"));
   };
 
-  // ✅ Edit & Delete handlers
   const handleEdit = (index) => {
-    setFormValues(suppliers[index]);
+    const selected = suppliers[index];
+    setFormValues(selected);
     setEditIndex(index);
   };
 
@@ -71,8 +97,9 @@ function Suppliers() {
       .catch(() => toast.error("Failed to delete ❌"));
   };
 
-  const columns = ['name', 'contactPerson', 'phone', 'email', 'address'];
+  const columns = ['supplierCode', 'name', 'contactPerson', 'phone', 'email', 'address'];
   const columnLabels = {
+    supplierCode: 'Code',
     name: 'Name',
     contactPerson: 'Contact Person',
     phone: 'Phone',
@@ -81,7 +108,7 @@ function Suppliers() {
   };
 
   return (
-    <div style={{ padding: '30px' }}>
+    <div style={{ paddingLeft: '30px', paddingRight: '30px'  }}>
       <h2>Suppliers</h2>
       <FormBuilder
         fields={fields}

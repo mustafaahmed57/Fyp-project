@@ -21,6 +21,8 @@ import StockOut from './pages/StockOut';
 import InventoryReport from './pages/InventoryReport';
 import WelcomePage from './pages/WelcomePage';
 import Suppliers from './pages/Suppliers';
+import Customer from './pages/Customer'; // ✅ adjust path if needed
+
 
 
 
@@ -49,6 +51,7 @@ function App() {
               <Route path="goods-receipt" element={<GoodsReceipt />} />
               <Route path="supplier-invoice" element={<SupplierInvoice />} />
               <Route path="users" element={<Users />} />
+              <Route path="/customers" element={<Customer />} /> 
               <Route path="sales-inquiry" element={<SalesInquiry />} />
               <Route path="sales-order" element={<SalesOrder />} />
               <Route path="delivery-note" element={<DeliveryNote />} />

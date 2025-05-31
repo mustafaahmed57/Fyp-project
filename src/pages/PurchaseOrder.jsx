@@ -22,9 +22,10 @@ function PurchaseOrder() {
       .then(data => {
         const clean = data.map(pr => ({
           value: pr.value,
-          label: `PR${pr.value.toString().padStart(5, '0')}`,
+          label: pr.label,
           productName: pr.productName,
-          quantity: pr.quantity
+          quantity: pr.quantity,
+          costPrice: pr.costPrice  // 🔥 now included
         }));
         setPrList(clean);
       })
@@ -51,27 +52,28 @@ function PurchaseOrder() {
   }, []);
 
   const handleFieldChange = (name, value, setFormValues) => {
-  setFormValues((prev) => {
-    const updated = { ...prev, [name]: value };
+    setFormValues((prev) => {
+      const updated = { ...prev, [name]: value };
 
-    // Auto-fill product and quantity from selected PR
-    if (name === 'prId') {
-      const selected = prList.find(p => p.value === parseInt(value));
-      if (selected) {
-        updated.productName = selected.productName;
-        updated.quantityOrdered = selected.quantity;
+      // Auto-fill when PR selected
+      if (name === 'prId') {
+        const selected = prList.find(p => p.value === parseInt(value));
+        if (selected) {
+          updated.productName = selected.productName;
+          updated.quantityOrdered = selected.quantity;
+          updated.pricePerUnit = selected.costPrice;
+          updated.totalPrice = selected.quantity * selected.costPrice;
+        }
       }
-    }
 
-    // ✅ Live calculate total
-    const quantity = parseFloat(updated.quantityOrdered || 0);
-    const price = parseFloat(updated.pricePerUnit || 0);
-    updated.totalPrice = quantity * price;
+      // Auto-recalculate total if quantity or price changes (optional)
+      const qty = parseFloat(updated.quantityOrdered || 0);
+      const price = parseFloat(updated.pricePerUnit || 0);
+      updated.totalPrice = qty * price;
 
-    return updated;
-  });
-};
-
+      return updated;
+    });
+  };
 
   const prOptions = prList.map(pr => ({
     value: pr.value,
@@ -88,8 +90,8 @@ function PurchaseOrder() {
     { name: 'supplierId', label: 'Supplier', type: 'select', options: supplierOptions },
     { name: 'productName', label: 'Product Name', type: 'text', disabled: true },
     { name: 'quantityOrdered', label: 'Quantity Ordered', type: 'number', disabled: true },
-    { name: 'pricePerUnit', label: 'Price Per Unit', type: 'number' },
-    { name: 'totalPrice', label: 'Total Price', type: 'number', disabled: true }, // ✅ Added here
+    { name: 'pricePerUnit', label: 'Price Per Unit', type: 'number', disabled: true },
+    { name: 'totalPrice', label: 'Total Price', type: 'number', disabled: true },
     { name: 'poDate', label: 'PO Date', type: 'date' }
   ];
 
@@ -98,7 +100,8 @@ function PurchaseOrder() {
       ...data,
       quantityOrdered: parseInt(data.quantityOrdered),
       pricePerUnit: parseFloat(data.pricePerUnit),
-      poDate: new Date(data.poDate).toISOString()
+      totalPrice: parseFloat(data.totalPrice),
+      poDate: new Date(data.poDate).toISOString().split('T')[0] // format as yyyy-MM-dd
     };
 
     fetch('http://localhost:5186/api/PurchaseOrder', {
@@ -142,54 +145,50 @@ function PurchaseOrder() {
     poDate: "PO Date"
   };
 
-  const resolveDisplayValue = (column, value, row) => {
-  if (column === 'prId') {
-    const pr = prList.find(p => p.value === value);
-    return pr ? pr.label : value;
-  }
+  const resolveDisplayValue = (column, value, ) => {
+    if (column === 'prId') {
+      const pr = prList.find(p => p.value === value);
+      return pr ? pr.label : value;
+    }
 
-  if (column === 'supplierId') {
-    const s = supplierList.find(s => s.value === value);
-    return s ? s.label : value;
-  }
+    if (column === 'supplierId') {
+      const s = supplierList.find(s => s.value === value);
+      return s ? s.label : value;
+    }
 
-  if (column === 'poDate') {
-    if (!value) return 'N/A';
-    const date = new Date(value);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  }
+    if (column === 'poDate') {
+      if (!value) return 'N/A';
+      const date = new Date(value);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    }
 
-  // ✅ NEW: status badge logic
-  if (column === 'status') {
-    const today = new Date();
-    const poDate = new Date(row.poDate);
-    const isOverdue = poDate < new Date(today.setHours(0, 0, 0, 0));
+    if (column === 'status') {
+      const badgeStyle = {
+        backgroundColor: value === "Pending" ? '#fbbf24' :
+                         value === "Approved" ? '#34d399' :
+                         value === "Cancelled" ? '#f87171' : '#d1d5db',
+        color: 'white',
+        padding: '4px 8px',
+        borderRadius: '8px',
+        fontWeight: 'bold',
+        display: 'inline-block',
+        minWidth: '80px',
+        textAlign: 'center'
+      };
 
-    const badgeStyle = {
-      backgroundColor: isOverdue ? '#f87171' : '#38bdf8',
-      color: 'white',
-      padding: '4px 8px',
-      borderRadius: '8px',
-      fontWeight: 'bold',
-      display: 'inline-block',
-      minWidth: '80px',
-      textAlign: 'center'
-    };
+      return (
+        <span style={badgeStyle}>
+          {value}
+        </span>
+      );
+    }
 
-    return (
-      <span style={badgeStyle}>
-        {isOverdue ? 'Overdue' : 'Upcoming'}
-      </span>
-    );
-  }
-
-  return value;
-};
-
+    return value;
+  };
 
   return (
     <div className="p-4">

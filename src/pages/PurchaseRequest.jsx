@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 function PurchaseRequest() {
   const [requests, setRequests] = useState([]);
   const [users, setUsers] = useState([]);
+  const [products, setProducts] = useState([]);
   const [formValues, setFormValues] = useState({});
   const navigate = useNavigate();
 
@@ -20,40 +21,66 @@ function PurchaseRequest() {
       .catch(() => toast.error("Failed to load purchase requests ❌"));
   };
 
-  // Fetch Users for dropdown + name resolution
+  // Fetch Procurement Users for dropdown
   const fetchUsers = () => {
-    fetch('http://localhost:5186/api/Users/dropdown')
+    fetch(`${apiUrl}/users`)
       .then(res => res.json())
-      .then(data => {
-        const options = data.map(u => ({
-          value: u.userID,
-          label: u.name
-        }));
-        setUsers(options);
-      })
+      .then(data => setUsers(data))
       .catch(() => toast.error("Failed to load users ❌"));
+  };
+
+  // Fetch Raw + Semi-Finished Products for dropdown
+  const fetchProducts = () => {
+    fetch(`${apiUrl}/products`)
+      .then(res => res.json())
+      .then(data => setProducts(data))
+      .catch(() => toast.error("Failed to load products ❌"));
   };
 
   useEffect(() => {
     fetchRequests();
     fetchUsers();
+    fetchProducts();
   }, []);
 
   const fields = [
     { name: 'requestedBy', label: 'Requested By', type: 'select', options: users },
-    { name: 'productName', label: 'Product Name', type: 'text' },
+    { name: 'productName', label: 'Product Name', type: 'select', options: products },
     { name: 'quantity', label: 'Quantity Needed', type: 'number' },
+    { name: 'costPrice', label: 'Cost Price', type: 'number', readOnly: true }, // NEW FIELD
     { name: 'requiredDate', label: 'Required Date', type: 'date' }
   ];
+
+  // Auto set CostPrice when product is selected
+ const handleFieldChange = (fieldName, value, setFormData) => {
+  if (fieldName === 'productName') {
+    const selectedProduct = products.find(p => p.value === value);
+    if (selectedProduct) {
+      setFormData(prev => ({
+        ...prev,
+        productName: value,
+        costPrice: selectedProduct.costPrice // Auto fill CostPrice
+      }));
+    }
+  } else {
+    setFormData(prev => ({
+      ...prev,
+      [fieldName]: value
+    }));
+  }
+};
+
 
   const handleSubmit = async (data) => {
     const fixedData = {
       ...data,
       requestedBy: parseInt(data.requestedBy),
-      quantity: parseInt(data.quantity)
+      quantity: parseInt(data.quantity),
+      costPrice: parseFloat(data.costPrice)
     };
 
-    if (!fixedData.requestedBy || !fixedData.productName || !fixedData.quantity) {
+    // ✅ Validation
+    if (!fixedData.requestedBy || !fixedData.productName || !fixedData.quantity || !fixedData.costPrice) {
       toast.error("Please fill all required fields ❌");
       return;
     }
@@ -69,7 +96,7 @@ function PurchaseRequest() {
         toast.success("Purchase Request submitted ✅");
         setFormValues({});
         fetchRequests();
-        setTimeout(() => navigate('/purchase-order'), 2000);
+        setTimeout(() => navigate('/purchase-order'), 2000); // Redirect after 2 seconds
       } else {
         toast.error("Submit failed ❌");
       }
@@ -84,6 +111,7 @@ function PurchaseRequest() {
     'requestedBy',
     'productName',
     'quantity',
+    'costPrice', // NEW COLUMN
     'requiredDate',
     'requestDate',
     'status'
@@ -94,6 +122,7 @@ function PurchaseRequest() {
     requestedBy: 'Requested By',
     productName: 'Product',
     quantity: 'Quantity',
+    costPrice: 'Cost Price',
     requiredDate: 'Required Date',
     requestDate: 'Request Date',
     status: 'Status'
@@ -106,6 +135,7 @@ function PurchaseRequest() {
         fields={fields}
         formValues={formValues}
         setFormValues={setFormValues}
+        onFieldChange={handleFieldChange}
         onSubmit={handleSubmit}
       />
       <DataTable

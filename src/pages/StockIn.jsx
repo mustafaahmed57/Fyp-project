@@ -7,32 +7,41 @@ import axios from 'axios';
 function StockIn() {
   const [stockIns, setStockIns] = useState([]);
   const [products, setProducts] = useState([]);
+  const [users, setUsers] = useState([]);
   const [formValues, setFormValues] = useState({});
 
   const baseURL = 'http://localhost:5186/api';
 
-  // ✅ Load products for dropdown
   const fetchProducts = async () => {
     try {
-      const response = await axios.get(`${baseURL}/products`);
-      setProducts(response.data);
-    } catch (error) {
-      console.error('Error loading products:', error);
+      const res = await axios.get(`${baseURL}/products`);
+      setProducts(res.data);
+    } catch {
+      toast.error('Failed to load products ❌');
     }
   };
 
-  // ✅ Load previous Stock-In entries (optional)
+  const fetchInventoryUsers = async () => {
+    try {
+      const res = await axios.get(`${baseURL}/stockin/inventory-users`);
+      setUsers(res.data);
+    } catch  {
+      toast.error('Failed to load inventory users ❌');
+    }
+  };
+
   const fetchStockIns = async () => {
     try {
-      const response = await axios.get(`${baseURL}/stockin`);
-      setStockIns(response.data);
-    } catch (error) {
-      console.error('Error loading stock-in list:', error);
+      const res = await axios.get(`${baseURL}/stockin`);
+      setStockIns(res.data);
+    } catch  {
+      toast.error('Failed to load stock in ❌');
     }
   };
 
   useEffect(() => {
     fetchProducts();
+    fetchInventoryUsers();
     fetchStockIns();
   }, []);
 
@@ -41,42 +50,81 @@ function StockIn() {
       name: 'productID',
       label: 'Product',
       type: 'select',
-      options: products.map(p => ({
-        value: p.productID,
-        label: `${p.productCode} - ${p.name}`
-      }))
+      options: products.map(p => ({ value: p.productID, label: `${p.productCode} - ${p.name}` }))
+    },
+    { name: 'price', label: 'Product Price', type: 'number', disabled: true },
+    { name: 'costPrice', label: 'Cost Price', type: 'number', disabled: true },
+    {
+      name: 'receivedByUserId',
+      label: 'Received By',
+      type: 'select',
+      options: users
     },
     { name: 'quantity', label: 'Quantity Received', type: 'number' },
-    { name: 'receivedBy', label: 'Received By', type: 'text' },
     { name: 'date', label: 'Date', type: 'date' },
-    { name: 'remarks', label: 'Remarks', type: 'text' },
+    { name: 'remarks', label: 'Remarks', type: 'text' }
   ];
 
-  const handleSubmit = async (data) => {
-    if (!data.productID || !data.quantity || !data.receivedBy || !data.date) {
-      toast.error('Please fill all required fields ❌');
-      return;
-    }
+const handleSubmit = async (data) => {
+  if (!data.productID || !data.quantity || !data.receivedByUserId || !data.date) {
+    toast.error('Please fill all required fields ❌');
+    return;
+  }
 
-    try {
-      await axios.post(`${baseURL}/stockin`, data);
-      toast.success('Stock In recorded ✅');
-      setFormValues({});
-      fetchStockIns();
-    } catch (error) {
-      console.error('Error during stock-in:', error);
-      toast.error('Stock In failed ❌');
+  if (data.quantity <= 0) {
+    toast.error('Quantity must be greater than 0 ❌');
+    return;
+  }
+
+  try {
+    await axios.post(`${baseURL}/stockin`, data);
+    toast.success('Stock In recorded ✅');
+    setFormValues({});
+    fetchStockIns();
+  } catch (error) {
+    console.error('Error during stock-in:', error);
+    toast.error('Stock In failed ❌');
+  }
+};
+
+  const handleFieldChange = async (field, value) => {
+    if (field === 'productID') {
+      const selected = products.find(p => p.productID === parseInt(value));
+      if (selected) {
+        setFormValues(prev => ({
+          ...prev,
+          productID: selected.productID,
+          price: selected.price,
+          costPrice: selected.costPrice
+        }));
+      }
+    } else {
+      setFormValues(prev => ({ ...prev, [field]: value }));
     }
   };
 
   const columns = [
-    'stockInID',
-    'productID',
+    'stockInCode',
+    // 'productID',
+    'productCode',      // ✅ New column
+    'productName',       // ✅ New column
+    'price',
+    'costPrice',
     'quantity',
     'receivedBy',
     'date',
-    'remarks'
+    'remarks',
   ];
+
+  const rows = stockIns.map(item => {
+  const product = products.find(p => p.productID === item.productID);
+  return {
+    ...item,
+    productCode: product?.productCode || '',
+    productName: product?.name || ''
+  };
+});
+
 
   return (
     <div>
@@ -85,11 +133,9 @@ function StockIn() {
         fields={fields}
         onSubmit={handleSubmit}
         initialValues={formValues}
-        onFieldChange={(field, value) =>
-          setFormValues(prev => ({ ...prev, [field]: value }))
-        }
+        onFieldChange={handleFieldChange}
       />
-      <DataTable columns={columns} rows={stockIns} />
+      <DataTable columns={columns} rows={rows} />
     </div>
   );
 }

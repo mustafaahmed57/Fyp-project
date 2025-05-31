@@ -46,6 +46,8 @@ function ProductManagement() {
       options: ['PCS', 'SHT', 'MTR', 'KG', 'BOX']
     },
     { name: 'stock', label: 'Stock Quantity', type: 'number' },
+    { name: 'price', label: 'Selling Price', type: 'number' }, // ✅ New field
+    { name: 'costPrice', label: 'Cost Price', type: 'number' }, // ✅ New field
     {
       name: 'status',
       label: 'Status',
@@ -92,7 +94,7 @@ function ProductManagement() {
   };
 
   const handleSubmit = async (data) => {
-    if (!data.name || !data.category || !data.productCode || !data.uom || !data.stock || !data.status) {
+    if (!data.name || !data.category || !data.productCode || !data.uom || !data.stock || !data.status || !data.price || !data.costPrice) {
       toast.error('All fields are required ❌');
       return;
     }
@@ -116,7 +118,7 @@ function ProductManagement() {
 
       setFormValues({});
       setEditId(null);
-      fetchProducts(); // refresh table
+      fetchProducts();
     } catch (err) {
       console.error('Submit error:', err);
       toast.error('Error saving product ❌');
@@ -142,12 +144,13 @@ function ProductManagement() {
   };
 
   const columns = [
-    // 'productID',
     'productCode',
     'name',
     'category',
     'uom',
     'stock',
+    'price', // ✅ Column added
+    'costPrice', // ✅ Column added
     'status',
     'description',
     'actions'

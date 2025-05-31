@@ -8,6 +8,9 @@ function SalesOrder() {
   const [orders, setOrders] = useState([]);
   const [inquiries, setInquiries] = useState([]);
   const [addsOnRequired, setAddsOnRequired] = useState(false);
+  const [statusValue, setStatusValue] = useState('Pending');
+
+
   const navigate = useNavigate();
 
   // 🔁 Load Sales Orders on page load
@@ -22,12 +25,15 @@ function SalesOrder() {
   }, []);
 
   // 🔁 Load inquiries for dropdown
-  useEffect(() => {
-    fetch('http://localhost:5186/api/SalesInquiry')
-      .then(res => res.json())
-      .then(data => setInquiries(data))
-      .catch(() => toast.error("Failed to load inquiries"));
-  }, []);
+useEffect(() => {
+  fetch('http://localhost:5186/api/SalesInquiry')
+    .then(res => res.json())
+    .then(data => {
+      setInquiries(data);
+    })
+    .catch(() => toast.error("Failed to load inquiries"));
+}, []);
+
 
   const inquiryOptions = inquiries.map((inq) => ({
     value: inq.inquiryID,
@@ -43,13 +49,16 @@ function SalesOrder() {
     },
     { name: 'customerName', label: 'Customer Name', type: 'text', disabled: true },
     { name: 'productName', label: 'Product Name', type: 'text', disabled: true },
+    { name: 'customerContact', label: 'Customer Contact', type: 'text', disabled: true },
+    { name: 'customerEmail', label: 'Customer Email', type: 'text', disabled: true },
     { name: 'quantityOrdered', label: 'Quantity Ordered', type: 'number', disabled: true },
-    { name: 'pricePerUnit', label: 'Price Per Unit', type: 'number' },
+    { name: 'pricePerUnit', label: 'Price Per Unit', type: 'number',readOnly: true },
     {
       name: 'status',
       label: 'Status',
       type: 'select',
-      options: ['Pending', 'Approved', 'Dispatched']
+      options: ['Pending', 'Approved', 'Dispatched'],
+       value: statusValue
     },
     ...(addsOnRequired
       ? [{
@@ -57,21 +66,49 @@ function SalesOrder() {
           label: 'Adds On Description',
           type: 'textarea'
         }]
-      : [])
+      : []),
+    // Hidden field to pass AddsOnRequired to backend
+    // { name: 'addsOnRequired', type: 'hidden', value: addsOnRequired }
+    { name: 'addsOnRequired', type: 'hidden', value: addsOnRequired || false, required: false }
+
   ];
 
   const handleFieldChange = (fieldName, value, setFormValues) => {
     if (fieldName === 'inquiryID') {
       const selected = inquiries.find(i => i.inquiryID === parseInt(value));
       if (selected) {
-        setFormValues((prev) => ({
+        // 1️⃣ Auto-fill fields from Sales Inquiry
+        setFormValues(prev => ({
           ...prev,
           customerName: selected.customerName,
           productName: selected.productRequested,
+          customerContact: selected.customerContact,
+          customerEmail: selected.customerEmail,
           quantityOrdered: selected.quantityRequested,
-          status: 'Pending' // ✅ default status on inquiry select
+          addsOnRequired: selected.addsOnRequired,
+          status: 'Pending'
         }));
+
         setAddsOnRequired(selected.addsOnRequired);
+        setStatusValue('Pending'); // <--- Add this!
+
+
+        // 2️⃣ Fetch price from Products (Finished Good)
+        fetch(`http://localhost:5186/api/Products/price?productName=${encodeURIComponent(selected.productRequested)}`)
+          .then(res => {
+            if (!res.ok) throw new Error('Price fetch failed');
+            return res.json();
+          })
+          .then(priceData => {
+            setFormValues(prev => ({
+              ...prev,
+              pricePerUnit: priceData.price
+            }));
+          })
+          .catch(err => {
+            console.error(err);
+            toast.error("Failed to fetch product price ❌");
+          });
       }
     }
   };
@@ -115,16 +152,18 @@ function SalesOrder() {
   };
 
   const columns = [
-    // 'orderID',
     'orderCode',
-    'inquiryID',
+    // 'inquiryID',
     'customerName',
+    'customerContact',
+    'customerEmail',
     'productName',
     'quantityOrdered',
     'pricePerUnit',
     'totalAmount',
-    'status',
+    'addsOnRequired',
     ...(addsOnRequired ? ['addsOnDescription'] : []),
+    'status',
     'orderDate'
   ];
 

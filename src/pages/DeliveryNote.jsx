@@ -39,9 +39,18 @@ function DeliveryNote() {
       options: orderOptions
     },
     { name: 'customerName', label: 'Customer Name', type: 'text', disabled: true },
+    { name: 'customerContact', label: 'Customer Contact', type: 'text', disabled: true },
+    { name: 'customerEmail', label: 'Customer Email', type: 'text', disabled: true },
     { name: 'productName', label: 'Product Name', type: 'text', disabled: true },
     { name: 'quantityOrdered', label: 'Quantity Ordered', type: 'number', disabled: true },
-    { name: 'deliveredQuantity', label: 'Delivered Quantity', type: 'number' }
+    { name: 'deliveredQuantity', label: 'Delivered Quantity', type: 'number' },
+    { name: 'deliveryDate', label: 'Delivery Date', type: 'date' },
+    {
+      name: 'status',
+      label: 'Status',
+      type: 'select',
+      options: ['Pending', 'Delivered']
+    }
   ];
 
   const handleFieldChange = (fieldName, value, setFormValues) => {
@@ -51,49 +60,65 @@ function DeliveryNote() {
         setFormValues(prev => ({
           ...prev,
           customerName: selected.customerName,
+          customerContact: selected.customerContact,
+          customerEmail: selected.customerEmail,
           productName: selected.productName,
-          quantityOrdered: selected.quantityOrdered
+          quantityOrdered: selected.quantityOrdered,
+          // Default delivered quantity to full (optional):
+          // deliveredQuantity: selected.quantityOrdered,
+          // Default delivery date to today:
+          deliveryDate: new Date().toISOString().split('T')[0],
+          status: 'Pending'
         }));
       }
     }
   };
 
   const handleSubmit = async (data) => {
-  if (parseInt(data.deliveredQuantity) > parseInt(data.quantityOrdered)) {
-    toast.error("Delivered quantity cannot exceed ordered quantity❌");
-    return;
-  }
-
-  try {
-    const response = await fetch('http://localhost:5186/api/DeliveryNote', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      setDeliveries(prev => [...prev, result]);
-      toast.success("Delivery Note submitted 🚚");
-    } else {
-      toast.error("Failed to submit delivery note ❌");
+    if (parseInt(data.deliveredQuantity) > parseInt(data.quantityOrdered)) {
+      toast.error("Delivered quantity cannot exceed ordered quantity❌");
+      return;
     }
-  } catch (err) {
-    console.error(err);
-    toast.error("Server error ❌");
-  }
-};
 
+    try {
+      const response = await fetch('http://localhost:5186/api/DeliveryNote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setDeliveries(prev => [...prev, result]);
+        toast.success("Delivery Note submitted 🚚");
+
+        // Optional: Refresh SalesOrders after Delivery to update status
+        fetch('http://localhost:5186/api/SalesOrder')
+          .then(res => res.json())
+          .then(data => {
+            const approved = data.filter(o => o.status === 'Approved');
+            setOrders(approved);
+          });
+      } else {
+        toast.error("Failed to submit delivery note ❌");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Server error ❌");
+    }
+  };
 
   const columns = [
-    // 'deliveryID',
     'deliveryCode',
     'salesOrderID',
     'customerName',
+    'customerContact',
+    'customerEmail',
     'productName',
     'quantityOrdered',
     'deliveredQuantity',
-    'deliveryDate'
+    'deliveryDate',
+    'status'
   ];
 
   return (
