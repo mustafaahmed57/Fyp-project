@@ -41,6 +41,7 @@ const sidebarModules = [
       { name: 'Sales Inquiry', path: '/sales-inquiry' },
       { name: 'Sales Order', path: '/sales-order' },
       { name: 'Delivery Note', path: '/delivery-note' },
+      { name: 'Invoice', path: '/customer-invoice' },
     ],
   },
   {

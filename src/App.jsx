@@ -22,6 +22,7 @@ import InventoryReport from './pages/InventoryReport';
 import WelcomePage from './pages/WelcomePage';
 import Suppliers from './pages/Suppliers';
 import Customer from './pages/Customer'; // ✅ adjust path if needed
+import CustomerInvoice from './pages/CustomerInvoice';
 
 
 
@@ -61,6 +62,8 @@ function App() {
               <Route path="inventory-report" element={<InventoryReport />} />
               <Route path="/welcome" element={<WelcomePage />} />
               <Route path="suppliers" element={<Suppliers />} />
+              <Route path="/customer-invoice" element={<CustomerInvoice />} />
+              
 
             </Route>
           ) : (

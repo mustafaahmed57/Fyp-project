@@ -42,6 +42,7 @@ function DeliveryNote() {
     { name: 'customerContact', label: 'Customer Contact', type: 'text', disabled: true },
     { name: 'customerEmail', label: 'Customer Email', type: 'text', disabled: true },
     { name: 'productName', label: 'Product Name', type: 'text', disabled: true },
+    { name: 'pricePerUnit', label: 'Price Per Unit', type: 'number', disabled: true },
     { name: 'quantityOrdered', label: 'Quantity Ordered', type: 'number', disabled: true },
     { name: 'deliveredQuantity', label: 'Delivered Quantity', type: 'number' },
     { name: 'deliveryDate', label: 'Delivery Date', type: 'date' },
@@ -64,6 +65,7 @@ function DeliveryNote() {
           customerEmail: selected.customerEmail,
           productName: selected.productName,
           quantityOrdered: selected.quantityOrdered,
+           pricePerUnit: selected.pricePerUnit, // ✅ THIS LINE
           // Default delivered quantity to full (optional):
           // deliveredQuantity: selected.quantityOrdered,
           // Default delivery date to today:
@@ -75,10 +77,11 @@ function DeliveryNote() {
   };
 
   const handleSubmit = async (data) => {
-    if (parseInt(data.deliveredQuantity) > parseInt(data.quantityOrdered)) {
-      toast.error("Delivered quantity cannot exceed ordered quantity❌");
-      return;
-    }
+    if (parseInt(data.deliveredQuantity) !== parseInt(data.quantityOrdered)) {
+  toast.error("Delivered quantity must exactly match ordered quantity❌");
+  return;
+}
+
 
     try {
       const response = await fetch('http://localhost:5186/api/DeliveryNote', {
@@ -116,6 +119,7 @@ function DeliveryNote() {
     'customerEmail',
     'productName',
     'quantityOrdered',
+     'pricePerUnit', // ✅ Add this
     'deliveredQuantity',
     'deliveryDate',
     'status'
