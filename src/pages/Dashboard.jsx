@@ -31,24 +31,32 @@ function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const [productsRes, poRes, soRes] = await Promise.all([
-          axios.get('http://localhost:5186/api/products'),
-          axios.get('http://localhost:5186/api/purchaseorder'),
-          axios.get('http://localhost:5186/api/salesorder')
-        ]);
+     try {
+  const [productsRes, poRes, soRes, moRes] = await Promise.all([
+    axios.get('http://localhost:5186/api/products'),
+    axios.get('http://localhost:5186/api/purchaseorder'),
+    axios.get('http://localhost:5186/api/salesorder'),
+    // axios.get('http://localhost:5186/api/manufacturingorder')
+  ]);
 
-        const totalStock = productsRes.data.reduce((sum, item) => sum + (item.stock || 0), 0);
+  console.log("Products:", productsRes.data);
+  console.log("POs:", poRes.data);
+  console.log("Sales Orders:", soRes.data);
+  console.log("Manufacturing Orders:", moRes?.data);
 
-        setSummary({
-          totalPOs: poRes.data.length,
-          inventoryCount: totalStock,
-          salesOrders: soRes.data.length
-        });
-      } catch (error) {
-        console.error("Dashboard data fetch failed", error);
-      }
-    };
+  const totalStock = productsRes.data.reduce((sum, item) => sum + (item.stock || 0), 0);
+  const activeMOs = moRes?.data?.filter(mo => mo.status !== 'Completed').length || 0;
+
+  setSummary({
+    totalPOs: poRes.data.length,
+    inventoryCount: totalStock,
+    salesOrders: soRes.data.length,
+    manufacturingOrders: activeMOs
+  });
+} catch (error) {
+  console.error("Dashboard data fetch failed", error);
+}
+    }
 
     fetchData();
   }, []);
@@ -70,10 +78,10 @@ function Dashboard() {
           <h3>📦 Inventory Items</h3>
           <p>{summary.inventoryCount}</p>
         </div>
-        <div className="dashboard-card">
-          <h3>🏭 Manufacturing</h3>
-          <p>6 Active Orders</p>
-        </div>
+       <div className="dashboard-card">
+  <h3>🏭 Manufacturing</h3>
+  <p>{summary.manufacturingOrders} Active Orders</p>
+</div>
       </div>
 
       <div className="charts">

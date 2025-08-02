@@ -37,7 +37,10 @@ function DataTable({ columns = [], rows = [], columnLabels = {}, resolveDisplayV
       Pending: '#facc15',
       Approved: '#4ade80',
       Dispatched: '#38bdf8',
-      Rejected: '#f87171'
+      Rejected: '#f87171',
+      Active: '#16A34Aff',
+      Used:'#2563EBff',
+      Cancelled: '#DC2626ff'
     };
 
     return (

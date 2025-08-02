@@ -153,7 +153,7 @@ function ProductManagement() {
     'costPrice', // ✅ Column added
     'status',
     'description',
-    'actions'
+    // 'actions'
   ];
 
   const rows = products.map((product, index) => ({

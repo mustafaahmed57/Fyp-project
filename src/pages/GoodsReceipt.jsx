@@ -3,6 +3,9 @@ import FormBuilder from '../components/FormBuilder';
 import DataTable from '../components/DataTable';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { validateDateInRange } from '../components/validateDate';
+import { getMinMaxDateRange } from '../components/getMinMaxDateRange';
+import { formatDateTime } from '../components/dateFormatter';
 
 function GoodsReceipt() {
   const navigate = useNavigate();
@@ -17,12 +20,19 @@ function GoodsReceipt() {
     poDate: '',
     quantityReceived: '',
     receiptDate: '',
-    remarks: ''
+    remarks: '',
+    status: '' 
   };
 
   const [formValues, setFormValues] = useState(initialFormValues);
   const [receipts, setReceipts] = useState([]);
   const [poList, setPoList] = useState([]);
+  const { min, max } = getMinMaxDateRange(1, 1);
+const [isEditing, setIsEditing] = useState(false);
+const [editingId, setEditingId] = useState(null);
+
+
+  
 
   const fetchReceipts = () => {
     fetch('http://localhost:5186/api/GoodsReceipt')
@@ -89,19 +99,25 @@ function GoodsReceipt() {
   };
 
   const fields = [
-    { name: 'poID', label: 'Purchase Order', type: 'select', options: poOptions },
+    { name: 'poID', label: 'Purchase Order', type: 'select', options: poOptions, disabled: isEditing },
     { name: 'supplierName', label: 'Supplier Name', type: 'text', disabled: true },
     { name: 'productName', label: 'Product Name', type: 'text', disabled: true },
     { name: 'quantityOrdered', label: 'Quantity Ordered', type: 'number', disabled: true },
     { name: 'pricePerUnit', label: 'Price Per Unit', type: 'number', disabled: true },
     { name: 'totalPrice', label: 'Total Price', type: 'number', disabled: true },
     { name: 'poDate', label: 'PO Date', type: 'date', disabled: true },
-    { name: 'quantityReceived', label: 'Quantity Received', type: 'number' },
-    { name: 'receiptDate', label: 'Receipt Date', type: 'date' },
-    { name: 'remarks', label: 'Remarks', type: 'textarea' }
+    { name: 'quantityReceived', label: 'Quantity Received', type: 'number', disabled: isEditing },
+    { name: 'receiptDate', label: 'Receipt Date', type: 'date', min, max, disabled: isEditing },
+    { name: 'remarks', label: 'Remarks', type: 'textarea',disabled: isEditing},
+    { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Used', 'Cancelled'] }
   ];
 
   const handleSubmit = (data) => {
+       const dateCheck = validateDateInRange(data.receiptDate, { minDays: 0, maxDays: 2 });
+            if (!dateCheck.valid) {
+              toast.error(dateCheck.message + "❌");
+              return;
+            }
     if (parseInt(data.quantityReceived) > parseInt(formValues.quantityOrdered)) {
       toast.error("Quantity Received cannot be greater than Quantity Ordered ❌");
       return;
@@ -115,34 +131,134 @@ function GoodsReceipt() {
       poDate: formValues.poDate ? new Date(formValues.poDate).toISOString() : new Date().toISOString(),
       quantityReceived: data.quantityReceived ? parseInt(data.quantityReceived) : 0,
       receiptDate: data.receiptDate ? new Date(data.receiptDate).toISOString().split('T')[0] : '',
-      remarks: data.remarks || ""
+      remarks: data.remarks || "",
+       status: data.status || "Active"  // ✅ Add this
     };
 
     console.log('🚀 Submitting Payload:', payload);
 
-    fetch('http://localhost:5186/api/GoodsReceipt', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to submit");
-        return res.json();
-      })
-      .then(() => {
-        toast.success("Goods Receipt saved ✅");
+  //   fetch('http://localhost:5186/api/GoodsReceipt', {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify(payload)
+  //   })
+  //     .then(res => {
+  //       if (!res.ok) throw new Error("Failed to submit");
+  //       return res.json();
+  //     })
+  //     .then(() => {
+  //       toast.success("Goods Receipt saved ✅");
 
-        setFormValues(initialFormValues);
+  //       setFormValues(initialFormValues);
 
-        fetchReceipts();
-        setTimeout(() => navigate('/supplier-invoice'), 2000);
-      })
-      .catch(() => toast.error("Submission failed ❌"));
-  };
+  //       fetchReceipts();
+  //       setTimeout(() => navigate('/supplier-invoice'), 2000);
+  //     })
+  //     .catch(() => toast.error("Quantity Received is greater than Quantity Ordered. ❌"));
+  // };
+const method = isEditing ? 'PUT' : 'POST';
+const url = isEditing
+  ? `http://localhost:5186/api/GoodsReceipt/${editingId}`
+  : 'http://localhost:5186/api/GoodsReceipt';
+
+fetch(url, {
+  method,
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(payload)
+})
+  .then(async res => {
+    if (!res.ok) {
+      const errorMessage = await res.text();
+      throw new Error(errorMessage);
+    }
+
+    if (res.status === 204) return {};
+    return res.json();
+  })
+  .then(() => {
+    toast.success(isEditing ? "Receipt updated ✅" : "Receipt saved ✅");
+    setFormValues(initialFormValues);
+    setIsEditing(false);
+    setEditingId(null);
+    fetchReceipts();
+    if (!isEditing) {
+      setTimeout(() => navigate('/supplier-invoice'), 2000);
+    }
+  })
+  .catch((err) => {
+    toast.error(err.message || "Failed to save/update receipt ❌");
+  });
+  }
+
+ 
+  const handleEdit = (receipt) => {
+    if (receipt.status === "Used") {
+        toast.warn("Cannot edit a PO that is already marked as Used.");
+        return;
+      }
+  setFormValues({
+    ...receipt,
+    poID: receipt.poID.toString(),
+    receiptDate: receipt.receiptDate?.split('T')[0],
+    poDate: receipt.poDate?.split('T')[0]
+  });
+  setIsEditing(true);
+  setEditingId(receipt.id);
+};
+
+const handleDelete = async (id) => {
+  if (window.confirm("Are you sure you want to delete this receipt?")) {
+    try {
+      const res = await fetch(`http://localhost:5186/api/GoodsReceipt/${id}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) throw new Error("Delete failed");
+      toast.success("Receipt deleted ✅");
+      fetchReceipts();
+    } catch {
+      toast.error("Failed to delete ❌");
+    }
+  }
+};
+
+
+//   const tableRows = receipts.map(receipt => ({
+//   ...receipt,
+//   actions: (
+//     <>
+//       <button className="btn edit-btn" onClick={() => handleEdit(receipt)}>Edit</button>
+//       <button className="btn delete-btn" onClick={() => handleDelete(receipt.id)} style={{ marginLeft: '6px' }}>
+//         Delete
+//       </button>
+//     </>
+//   )
+// }));
+
+ const tableRows = receipts.map(receipt => ({
+  ...receipt,
+  actions: (
+    <>
+      {(receipt.status === 'Active' || receipt.status === 'Cancelled') ? (
+        <>
+          <button className="btn edit-btn" onClick={() => handleEdit(receipt)}>Edit</button>
+          <button className="btn delete-btn" onClick={() => handleDelete(receipt.id)} style={{ marginLeft: '6px' }}>
+            Delete
+          </button>
+        </>
+      ) : (
+        <span style={{ color: 'gray', fontStyle: 'italic' }}>Locked 🔒</span>
+      )}
+    </>
+  )
+}));
+
+
 
   const columns = [
     'grnCode',
-    'poID',
+    'poCode',  // ✅ Add this
+    'supplierCode',
+    // 'poID',
     'supplierName',
     'productName',
     'quantityOrdered',
@@ -150,12 +266,15 @@ function GoodsReceipt() {
     'totalPrice',
     'quantityReceived',
     'receiptDate',
-    'status'
+    'status',
+    'actions'
   ];
 
   const columnLabels = {
     grnCode: 'GRN Code',
-    poID: 'PO Code',
+    poCode: 'PO Code',  // ✅ Add this line
+    supplierCode: 'Supplier Code',
+    // poID: 'PO Code',
     supplierName: 'Supplier',
     productName: 'Product',
     quantityOrdered: 'Qty Ordered',
@@ -163,47 +282,8 @@ function GoodsReceipt() {
     totalPrice: 'Total',
     quantityReceived: 'Qty Received',
     receiptDate: 'Receipt Date',
-    status: 'Status'
-  };
-
-  const resolveDisplayValue = (column, value) => {
-    if (column === 'poID') {
-      const po = poList.find(p => p.value === value);
-      return po ? po.label : value;
-    }
-
-    if (column === 'receiptDate') {
-      if (!value) return 'N/A';
-      const date = new Date(value);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    }
-
-    if (column === 'status') {
-      const badgeStyle = {
-        backgroundColor: value === "Pending" ? '#fbbf24' :
-                         value === "Approved" ? '#34d399' :
-                         value === "Cancelled" ? '#f87171' : '#d1d5db',
-        color: 'white',
-        padding: '4px 8px',
-        borderRadius: '8px',
-        fontWeight: 'bold',
-        display: 'inline-block',
-        minWidth: '80px',
-        textAlign: 'center'
-      };
-
-      return (
-        <span style={badgeStyle}>
-          {value}
-        </span>
-      );
-    }
-
-    return value;
+    status: 'Status',
+    actions: 'Actions'
   };
 
   return (
@@ -218,9 +298,13 @@ function GoodsReceipt() {
       <DataTable
         columns={columns}
         columnLabels={columnLabels}
-        rows={receipts}
-        resolveDisplayValue={resolveDisplayValue}
+        // rows={receipts}
+         rows={tableRows}
         exportFileName="GoodsReceipts"
+         resolveDisplayValue={(col, value) => {
+                  if (col === 'receiptDate') return formatDateTime(value);
+                  return value;
+                }}
       />
     </div>
   );

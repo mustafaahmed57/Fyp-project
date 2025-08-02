@@ -4,16 +4,22 @@ import DataTable from '../components/DataTable';
 import { toast } from 'react-toastify';
 import InvoiceModal from '../components/InvoiceModal';
 import InvoicePrint from './InvoicePrint';
+import { validateDateInRange } from '../components/validateDate';
+import { getMinMaxDateRange } from '../components/getMinMaxDateRange';
+import { formatDateTime } from '../components/dateFormatter';
+
 
 function SupplierInvoice() {
   const [formValues, setFormValues] = useState({});
   const [invoiceList, setInvoiceList] = useState([]);
   const [grnList, setGrnList] = useState([]);
-
+  const { min, max } = getMinMaxDateRange(1, 1);
   // ✅ Modal states
   const [showInvoice, setShowInvoice] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
-
+  const [isEditing] = useState(false);
+  
+  
   // Load Invoices
   const fetchInvoices = () => {
     fetch('http://localhost:5186/api/SupplierInvoice')
@@ -64,6 +70,13 @@ function SupplierInvoice() {
   };
 
  const handleSubmit = (data) => {
+    if (!isEditing) {
+        const dateCheck = validateDateInRange(data.poDate, { minDays: 0, maxDays: 2 });
+        if (!dateCheck.valid) {
+          toast.error(dateCheck.message + "❌");
+          return;
+        }
+      }
   fetch('http://localhost:5186/api/SupplierInvoice', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -81,6 +94,8 @@ function SupplierInvoice() {
       toast.success("Supplier Invoice created ✅");
       setFormValues({});
       fetchInvoices();
+      fetchGRNs(); // 🆕 Refresh GRN dropdown here (💥 real-time update)
+
     })
     .catch(err => toast.error(err.message));
 };
@@ -123,19 +138,32 @@ function SupplierInvoice() {
     { name: 'quantityInvoiced', label: 'Quantity Invoiced', type: 'number', disabled: true },
     { name: 'pricePerUnit', label: 'Price Per Unit', type: 'number', disabled: true },
     { name: 'totalAmount', label: 'Total Amount', type: 'number', disabled: true },
-    { name: 'invoiceDate', label: 'Invoice Date', type: 'date' }
+    { name: 'invoiceDate', label: 'Invoice Date', type: 'date', min , max }
   ];
 
-  const resolveDisplayValue = (col, val, row) => {
-    if (col === 'actions') {
-      return (
-        <button className="btn view" onClick={() => handleViewInvoice(row)}>
-          View Invoice
-        </button>
-      );
-    }
-    return val;
-  };
+  // const resolveDisplayValue = (col, val, row) => {
+  //   if (col === 'actions') {
+  //     return (
+  //       <button className="btn view" onClick={() => handleViewInvoice(row)}>
+  //         View Invoice
+  //       </button>
+  //     );
+  //   }
+  //   return val;
+  // };
+
+  const resolveDisplayValue = (col, value, row) => {
+  if (col === 'invoiceDate') return formatDateTime(value);
+  if (col === 'actions') {
+    return (
+      <button className="btn view" onClick={() => handleViewInvoice(row)}>
+        View Invoice
+      </button>
+    );
+  }
+  return value;
+};
+
 
   return (
     <div className="p-4">

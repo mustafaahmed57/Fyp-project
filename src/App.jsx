@@ -63,7 +63,6 @@ function App() {
               <Route path="/welcome" element={<WelcomePage />} />
               <Route path="suppliers" element={<Suppliers />} />
               <Route path="/customer-invoice" element={<CustomerInvoice />} />
-              
 
             </Route>
           ) : (

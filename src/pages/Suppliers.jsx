@@ -6,20 +6,35 @@ import { toast } from 'react-toastify';
 function Suppliers() {
   const [suppliers, setSuppliers] = useState([]);
   const [formValues, setFormValues] = useState({});
-  const [editIndex, setEditIndex] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [userOptions, setUserOptions] = useState([]);
+
 
   const apiUrl = 'http://localhost:5186/api/Suppliers';
 
   const fields = [
-    { name: 'supplierCode', label: 'Supplier Code', type: 'text', readOnly: true }, // ✅ shown as non-editable
-    { name: 'name', label: 'Name', type: 'text' },
-    { name: 'contactPerson', label: 'Contact Person', type: 'text' },
+    { name: 'supplierCode', label: 'Supplier Code', type: 'text', readOnly: true },
+    { name: 'name', label: 'Name', type: 'text',readOnly: isEditing },
+    // { name: 'contactPerson', label: 'Contact Person', type: 'text' },
+    { name: 'contactPerson', label: 'Contact Person', type: 'select', options: userOptions }, // will be filled dynamically
     { name: 'phone', label: 'Phone', type: 'text' },
     { name: 'email', label: 'Email', type: 'email' },
     { name: 'address', label: 'Address', type: 'text' }
   ];
 
-  // ✅ Fetch suppliers
+  const fetchUsers = () => {
+  fetch('http://localhost:5186/api/Users/dropdown')
+    .then(res => res.json())
+    .then(data => {
+      const formatted = data.map(u => ({
+        value: u.name,
+        label: u.name
+      }));
+      setUserOptions(formatted);
+    })
+    .catch(() => toast.error("Failed to load users ❌"));
+};
+
   const fetchSuppliers = () => {
     fetch(apiUrl)
       .then(res => res.json())
@@ -29,34 +44,20 @@ function Suppliers() {
 
   useEffect(() => {
     fetchSuppliers();
+     fetchUsers(); //
   }, []);
 
-  // ✅ Submit handler
   const handleSubmit = async (data) => {
-    // ✅ Validate phone (exactly 11 digits)
     if (!/^\d{11}$/.test(data.phone)) {
       toast.error("Phone must be exactly 11 digits ❌");
       return;
     }
 
-    // ✅ Prevent duplicate name or email
-    const isDuplicate = suppliers.some((s, idx) =>
-      idx !== editIndex &&
-      (s.name === data.name || s.email === data.email)
-    );
+    const method = isEditing ? 'PUT' : 'POST';
+    const url = isEditing ? `${apiUrl}/${data.id}` : apiUrl;
+    // const payload = isEditing ? data : { ...data, supplierCode: undefined };
+    const payload = isEditing ? { ...data, id: data.id } : { ...data, supplierCode: undefined };
 
-    if (isDuplicate) {
-      toast.error("Duplicate name or email ❌");
-      return;
-    }
-
-    const method = editIndex !== null ? 'PUT' : 'POST';
-    const url = editIndex !== null ? `${apiUrl}/${suppliers[editIndex].id}` : apiUrl;
-
-    // ✅ Remove supplierCode on create (backend will generate it)
-    const payload = method === 'POST'
-      ? { ...data, supplierCode: undefined }
-      : data;
 
     fetch(url, {
       method,
@@ -64,16 +65,29 @@ function Suppliers() {
       body: JSON.stringify(payload)
     })
       .then(async res => {
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.message || "Failed");
-        }
-        return res.json();
-      })
+  if (!res.ok) {
+    const errText = await res.text(); // get text fallback
+    let errMessage = "Failed";
+
+    try {
+      const errJson = JSON.parse(errText);
+      errMessage = errJson.message || errMessage;
+    } catch {
+      errMessage = errText || errMessage;
+    }
+
+    throw new Error(errMessage);
+  }
+
+  // ✅ Return response only if there's body
+  if (res.status === 204) return null; // No content
+  return res.json();
+})
+
       .then(() => {
-        toast.success(`Supplier ${editIndex !== null ? 'updated' : 'created'} ✅`);
+        toast.success(`Supplier ${isEditing ? 'updated' : 'created'} ✅`);
         setFormValues({});
-        setEditIndex(null);
+        setIsEditing(false);
         fetchSuppliers();
       })
       .catch((err) => toast.error(err.message || "Failed to save ❌"));
@@ -82,12 +96,10 @@ function Suppliers() {
   const handleEdit = (index) => {
     const selected = suppliers[index];
     setFormValues(selected);
-    setEditIndex(index);
+    setIsEditing(true);
   };
 
-  const handleDelete = (index) => {
-    const id = suppliers[index].id;
-
+  const handleDelete = (id) => {
     fetch(`${apiUrl}/${id}`, { method: 'DELETE' })
       .then(res => {
         if (!res.ok) throw new Error("Delete failed");
@@ -97,31 +109,43 @@ function Suppliers() {
       .catch(() => toast.error("Failed to delete ❌"));
   };
 
-  const columns = ['supplierCode', 'name', 'contactPerson', 'phone', 'email', 'address'];
+  const columns = ['supplierCode', 'name', 'contactPerson', 'phone', 'email', 'address', 'actions'];
+
   const columnLabels = {
-    supplierCode: 'Code',
+    supplierCode: 'Supplier Code',
     name: 'Name',
     contactPerson: 'Contact Person',
     phone: 'Phone',
     email: 'Email',
-    address: 'Address'
+    address: 'Address',
+    actions: 'Actions'
   };
 
+  const tableRows = suppliers.map((supplier, index) => ({
+    ...supplier,
+    actions: (
+      <>
+        <button className="btn edit-btn" onClick={() => handleEdit(index)}>Edit</button>
+        <button className="btn delete-btn" onClick={() => handleDelete(supplier.id)} style={{ marginLeft: '6px' }}>
+          Delete
+        </button>
+      </>
+    )
+  }));
+
   return (
-    <div style={{ paddingLeft: '30px', paddingRight: '30px'  }}>
+    <div style={{ paddingLeft: '30px', paddingRight: '30px' }}>
       <h2>Suppliers</h2>
       <FormBuilder
-        fields={fields}
-        formValues={formValues}
-        setFormValues={setFormValues}
-        onSubmit={handleSubmit}
-      />
+  fields={fields}
+  initialValues={formValues}
+  onSubmit={handleSubmit}
+/>
+
       <DataTable
         columns={columns}
-        rows={suppliers}
+        rows={tableRows}
         columnLabels={columnLabels}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
       />
     </div>
   );

@@ -8,11 +8,43 @@ function Users() {
   const [userList, setUserList] = useState([]);
   const [formValues, setFormValues] = useState({});
   const [isEditing, setIsEditing] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // ✅ added
 
   const fields = [
-    { name: 'fullName', label: 'Full Name', type: 'text' },
+    { name: 'fullName', label: 'Full Name', type: 'text', disabled: isEditing },
     { name: 'email', label: 'Email', type: 'email' },
-    { name: 'password', label: 'Password', type: 'password' },
+    // { name: 'password', label: 'Password', type: 'password' },
+//     {
+//   name: 'password',
+//   label: 'Password',
+//   type: showPassword ? 'text' : 'password',
+// }
+// ,
+//     {
+//   name: 'password',
+//   label: 'Password',
+//   type: showPassword ? 'text' : 'password',
+//   suffix: (
+//     <span onClick={() => setShowPassword(!showPassword)} style={{ cursor: 'pointer' }}>
+//       {showPassword ? '🙈' : '👁️'}
+//     </span>
+//   )
+// },
+ {
+    name: 'password',
+    type: showPassword ? 'text' : 'password',
+    label: (
+      <span>
+        Password{' '}
+        <span
+          onClick={() => setShowPassword(!showPassword)}
+          style={{ cursor: 'pointer', marginLeft: '8px' }}
+        >
+          {showPassword ? '🙈' : '👁️'}
+        </span>
+      </span>
+    )
+  },
     {
       name: 'role',
       label: 'Role',
@@ -73,7 +105,7 @@ function Users() {
     setIsEditing(true);
   };
 
-  const columns = ['userID', 'fullName', 'email', 'role', 'actions']; // ✅ fixed userId → userID
+  const columns = ['userCode', 'fullName', 'email', 'role', 'actions']; // ✅ fixed userId → userID
 
   const tableRows = userList.map((user, index) => ({
     ...user,

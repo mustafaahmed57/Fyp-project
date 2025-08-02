@@ -2,22 +2,29 @@ import React, { useEffect, useState } from 'react';
 import FormBuilder from '../components/FormBuilder';
 import DataTable from '../components/DataTable';
 import { toast } from 'react-toastify';
+import { validateDateInRange } from '../components/validateDate';
+import { getMinMaxDateRange } from '../components/getMinMaxDateRange';
+import { formatDateTime } from '../components/dateFormatter';
 
 function PurchaseOrder() {
   const [formValues, setFormValues] = useState({});
   const [poList, setPoList] = useState([]);
   const [prList, setPrList] = useState([]);
   const [supplierList, setSupplierList] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const apiUrl = 'http://localhost:5186/api/PurchaseOrder';
+
+  const { min, max } = getMinMaxDateRange(1, 1);
 
   const fetchPOs = () => {
-    fetch('http://localhost:5186/api/PurchaseOrder')
+    fetch(apiUrl)
       .then(res => res.json())
       .then(data => setPoList(data))
       .catch(() => toast.error("Failed to load Purchase Orders"));
   };
 
   const fetchPRs = () => {
-    fetch('http://localhost:5186/api/PurchaseOrder/pr-dropdown')
+    fetch(`${apiUrl}/pr-dropdown`)
       .then(res => res.json())
       .then(data => {
         const clean = data.map(pr => ({
@@ -25,7 +32,7 @@ function PurchaseOrder() {
           label: pr.label,
           productName: pr.productName,
           quantity: pr.quantity,
-          costPrice: pr.costPrice  // 🔥 now included
+          costPrice: pr.costPrice
         }));
         setPrList(clean);
       })
@@ -33,7 +40,7 @@ function PurchaseOrder() {
   };
 
   const fetchSuppliers = () => {
-    fetch('http://localhost:5186/api/PurchaseOrder/supplier-dropdown')
+    fetch(`${apiUrl}/supplier-dropdown`)
       .then(res => res.json())
       .then(data => {
         const clean = data.map(sup => ({
@@ -55,7 +62,6 @@ function PurchaseOrder() {
     setFormValues((prev) => {
       const updated = { ...prev, [name]: value };
 
-      // Auto-fill when PR selected
       if (name === 'prId') {
         const selected = prList.find(p => p.value === parseInt(value));
         if (selected) {
@@ -66,13 +72,83 @@ function PurchaseOrder() {
         }
       }
 
-      // Auto-recalculate total if quantity or price changes (optional)
       const qty = parseFloat(updated.quantityOrdered || 0);
       const price = parseFloat(updated.pricePerUnit || 0);
       updated.totalPrice = qty * price;
 
       return updated;
     });
+  };
+
+  const handleSubmit = (data) => {
+    if (!isEditing) {
+      const dateCheck = validateDateInRange(data.poDate, { minDays: 0, maxDays: 2 });
+      if (!dateCheck.valid) {
+        toast.error(dateCheck.message + "❌");
+        return;
+      }
+    }
+
+    const method = isEditing ? 'PUT' : 'POST';
+    const url = isEditing ? `${apiUrl}/${data.id}` : apiUrl;
+
+    const payload = isEditing
+      ? {status: data.status }
+      : {
+          ...data,
+          quantityOrdered: parseInt(data.quantityOrdered),
+          pricePerUnit: parseFloat(data.pricePerUnit),
+          totalPrice: parseFloat(data.totalPrice),
+          poDate: new Date(data.poDate).toISOString().split('T')[0]
+        };
+
+    fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to save");
+        return isEditing ? null : res.json();
+      })
+      .then(saved => {
+        if (!isEditing) {
+          setPoList(prev => [saved, ...prev]);
+        } else {
+          fetchPOs();
+        }
+        toast.success(isEditing ? "Order updated ✅" : "Order created ✅");
+        setFormValues({});
+        setIsEditing(false);
+      })
+      .catch(() => toast.error("Error submitting PO ❌"));
+  };
+
+const handleEdit = (selected) => {
+   if (selected.status === "Used") {
+    toast.warn("Cannot edit a PO that is already marked as Used.");
+    return;
+  }
+  setFormValues({
+    ...selected,
+    poDate: selected.poDate?.split('T')[0]
+  });
+  setIsEditing(true);
+};
+
+
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this order?")) {
+      try {
+        const res = await fetch(`${apiUrl}/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error("Delete failed");
+        toast.success("Order deleted ✅");
+        fetchPOs();
+      } catch {
+        toast.error("Failed to delete ❌");
+      }
+    }
   };
 
   const prOptions = prList.map(pr => ({
@@ -86,109 +162,53 @@ function PurchaseOrder() {
   }));
 
   const fields = [
-    { name: 'prId', label: 'Purchase Request', type: 'select', options: prOptions },
-    { name: 'supplierId', label: 'Supplier', type: 'select', options: supplierOptions },
+    { name: 'prId', label: 'Purchase Request', type: 'select', options: prOptions, disabled: isEditing },
+    { name: 'supplierId', label: 'Supplier', type: 'select', options: supplierOptions, disabled: isEditing },
     { name: 'productName', label: 'Product Name', type: 'text', disabled: true },
     { name: 'quantityOrdered', label: 'Quantity Ordered', type: 'number', disabled: true },
     { name: 'pricePerUnit', label: 'Price Per Unit', type: 'number', disabled: true },
     { name: 'totalPrice', label: 'Total Price', type: 'number', disabled: true },
-    { name: 'poDate', label: 'PO Date', type: 'date' }
+    { name: 'poDate', label: 'PO Date', type: 'date', min, max, disabled: isEditing },
+    { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Used', 'Cancelled'] }
   ];
 
-  const handleSubmit = (data) => {
-    const payload = {
-      ...data,
-      quantityOrdered: parseInt(data.quantityOrdered),
-      pricePerUnit: parseFloat(data.pricePerUnit),
-      totalPrice: parseFloat(data.totalPrice),
-      poDate: new Date(data.poDate).toISOString().split('T')[0] // format as yyyy-MM-dd
-    };
-
-    fetch('http://localhost:5186/api/PurchaseOrder', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to save");
-        return res.json();
-      })
-      .then(saved => {
-        setPoList(prev => [...prev, saved]);
-        toast.success("Purchase Order submitted ✅");
-        setFormValues({});
-      })
-      .catch(() => toast.error("Error submitting PO ❌"));
-  };
-
   const columns = [
-    "poCode",
-    "prId",
-    "supplierId",
-    "productName",
-    "quantityOrdered",
-    "pricePerUnit",
-    "totalPrice",
-    "status",
-    "poDate"
+    "poCode", "prCode", "supplierCode", "supplierName",
+    "productName", "quantityOrdered", "pricePerUnit", "total", "poDate","status","actions"
   ];
 
   const columnLabels = {
     poCode: "PO Code",
-    prId: "PR Code",
-    supplierId: "Supplier",
-    productName: "Product",
+    prCode: "PR Code",
+    supplierCode: "Supplier Code",
+    supplierName: "Supplier Name",
+    productName: "Product Name",
     quantityOrdered: "Quantity",
     pricePerUnit: "Unit Price",
-    totalPrice: "Total",
-    status: "Status",
-    poDate: "PO Date"
+    total: "Total",
+    poDate: "PO Date",
+     status: "Status", // ✅ Add this
+      actions: "Actions" // ✅ Add this
   };
 
-  const resolveDisplayValue = (column, value, ) => {
-    if (column === 'prId') {
-      const pr = prList.find(p => p.value === value);
-      return pr ? pr.label : value;
-    }
+  const tableRows = poList.map(po => ({
+  ...po,
+  actions: (
+    <>
+      {(po.status === 'Active' || po.status === 'Cancelled') ? (
+        <>
+          <button className="btn edit-btn" onClick={() => handleEdit(po)}>Edit</button>
+          <button className="btn delete-btn" onClick={() => handleDelete(po.id)} style={{ marginLeft: '6px' }}>
+            Delete
+          </button>
+        </>
+      ) : (
+        <span style={{ color: 'gray', fontStyle: 'italic' }}>Locked 🔒</span>
+      )}
+    </>
+  )
+}));
 
-    if (column === 'supplierId') {
-      const s = supplierList.find(s => s.value === value);
-      return s ? s.label : value;
-    }
-
-    if (column === 'poDate') {
-      if (!value) return 'N/A';
-      const date = new Date(value);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    }
-
-    if (column === 'status') {
-      const badgeStyle = {
-        backgroundColor: value === "Pending" ? '#fbbf24' :
-                         value === "Approved" ? '#34d399' :
-                         value === "Cancelled" ? '#f87171' : '#d1d5db',
-        color: 'white',
-        padding: '4px 8px',
-        borderRadius: '8px',
-        fontWeight: 'bold',
-        display: 'inline-block',
-        minWidth: '80px',
-        textAlign: 'center'
-      };
-
-      return (
-        <span style={badgeStyle}>
-          {value}
-        </span>
-      );
-    }
-
-    return value;
-  };
 
   return (
     <div className="p-4">
@@ -202,8 +222,13 @@ function PurchaseOrder() {
       <DataTable
         columns={columns}
         columnLabels={columnLabels}
-        rows={poList}
-        resolveDisplayValue={resolveDisplayValue}
+        rows={tableRows}
+        // onEdit={handleEdit}
+        // onDelete={handleDelete}
+        resolveDisplayValue={(col, value) => {
+          if (col === 'poDate') return formatDateTime(value);
+          return value;
+        }}
         exportFileName="PurchaseOrders"
       />
     </div>

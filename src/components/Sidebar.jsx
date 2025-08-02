@@ -65,7 +65,11 @@ const sidebarModules = [
   {
     name: 'Manufacturing',
     icon: <FaIndustry />,
-    children: [],
+    children: [
+      // { name: 'Manufacturing Plan', path: 'manufacturing-Plan' },
+      // { name: 'Manufacturing Order', path: '/manufacturing-Order' },
+      
+    ],
   },
   {
     name: 'Users',

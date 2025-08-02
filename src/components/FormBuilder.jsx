@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 function FormBuilder({ fields, onSubmit, initialValues = {}, onFieldChange, checkDuplicate }) {
   const [formData, setFormData] = useState(initialValues);
   const [errors, setErrors] = useState({});
+  
 
   useEffect(() => {
     if (Object.keys(initialValues).length > 0) {
@@ -104,6 +105,7 @@ function FormBuilder({ fields, onSubmit, initialValues = {}, onFieldChange, chec
                 value={formData[field.name] || ''}
                 onChange={handleChange}
                 required
+                disabled={field.disabled} // ✅ this will now properly disable the dropdown
               >
                 <option value="">Select</option>
                 {field.options.map((opt) =>
@@ -122,6 +124,7 @@ function FormBuilder({ fields, onSubmit, initialValues = {}, onFieldChange, chec
                 onChange={handleChange}
                 rows="4"
                 required
+                disabled={field.disabled} // ✅ This must exist!
               />
             ) : field.type !== 'checkbox' ? (
               <input
@@ -135,6 +138,10 @@ function FormBuilder({ fields, onSubmit, initialValues = {}, onFieldChange, chec
                 // readOnly={field.disabled}
                 readOnly={field.readOnly || field.disabled}
                 min={field.type === 'number' ? '0' : undefined} // HTML-level protection
+                {...(field.type === 'date' && {
+    min: field.min,
+    max: field.max,
+  })}
               />
             ) : null}
 
