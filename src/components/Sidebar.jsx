@@ -26,7 +26,7 @@ const sidebarModules = [
     name: 'Purchase',
     icon: <FaShoppingCart />,
     children: [
-      { name: 'Supplier Management', path: '/suppliers' },
+      { name: 'Supplier Management', path: '/suppliers', tag: 'Master Data' },
       { name: 'Purchase Request', path: '/purchase-request' },
       { name: 'Purchase Order', path: '/purchase-order' },
       { name: 'Goods Receipt', path: '/goods-receipt' },
@@ -66,7 +66,10 @@ const sidebarModules = [
     name: 'Manufacturing',
     icon: <FaIndustry />,
     children: [
-      // { name: 'Manufacturing Plan', path: 'manufacturing-Plan' },
+      { name: 'Bom', path: '/bom' },
+      { name: 'Production Plan', path: '/production-plan' },
+      { name: 'Production Order', path: '/production-order' }, 
+      { name: 'Production Completion', path: '/production-completion' }
       // { name: 'Manufacturing Order', path: '/manufacturing-Order' },
       
     ],
@@ -151,5 +154,62 @@ function Sidebar({ userRole }) {
     </div>
   );
 }
+
+// {openModule === module.name && module.children.length > 0 && (
+//   <ul className="module-children">
+//     {(() => {
+//       let transactionLabelShown = false;
+//       return module.children.map((child) => {
+//         const showTag =
+//           child.tag === 'Transaction' ? !transactionLabelShown : true;
+
+//         if (child.tag === 'Transaction') transactionLabelShown = true;
+
+//         return (
+//           <li
+//             key={child.path}
+//             style={{
+//               display: 'flex',
+//               flexDirection: 'column',
+//               alignItems: 'flex-start',
+//               marginBottom: '8px',
+//             }}
+//           >
+//             {/* Show tag only if showTag is true */}
+//             {child.tag && showTag && (
+//               <span
+//                 style={{
+//                   fontSize: '10px',
+//                   fontWeight: '600',
+//                   padding: '2px 6px',
+//                   borderRadius: '4px',
+//                   marginBottom: '3px',
+//                   backgroundColor:
+//                     child.tag === 'Master Data'
+//                       ? '#4cafef'
+//                       : child.tag === 'Transaction'
+//                       ? '#f57c00'
+//                       : '#777',
+//                   color: 'white',
+//                 }}
+//               >
+//                 {child.tag}
+//               </span>
+//             )}
+
+//             <NavLink
+//               to={child.path}
+//               className={({ isActive }) =>
+//                 isActive ? 'child-link active' : 'child-link'
+//               }
+//             >
+//               {child.name}
+//             </NavLink>
+//           </li>
+//         );
+//       });
+//     })()}
+//   </ul>
+// )}
 
 export default Sidebar;

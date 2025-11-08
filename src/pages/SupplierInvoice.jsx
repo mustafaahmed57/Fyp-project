@@ -166,8 +166,8 @@ function SupplierInvoice() {
 
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Supplier Invoice</h2>
+    <div style={{ paddingLeft: '15px', paddingRight: '10px' }}>
+      <h2 >Supplier Invoice (SI)</h2>
 
       <FormBuilder
         fields={fields}

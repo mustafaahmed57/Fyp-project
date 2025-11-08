@@ -4,6 +4,7 @@ import DataTable from '../components/DataTable';
 import { toast } from 'react-toastify';
 import InvoiceModal from '../components/InvoiceModal'; // ✅ modal reuse
 import InvoicePrint from './InvoicePrint'; // ✅ print component reuse
+import SalesInvoicePrint from './SalesInvoicePrint ';
 
 function CustomerInvoice() {
   const [formValues, setFormValues] = useState({});
@@ -74,6 +75,8 @@ function CustomerInvoice() {
       .then(() => {
         toast.success("Customer Invoice created ✅");
         setFormValues({});
+         fetchInvoices();       // ✅ refresh invoices
+      fetchDeliveries();     // ✅ refresh delivery dropdown live
         fetchInvoices();
       })
       .catch(err => toast.error(err.message));
@@ -82,6 +85,7 @@ function CustomerInvoice() {
   // ✅ Modal open logic
   const handleViewInvoice = (invoice) => {
     setSelectedInvoice(invoice);
+    console.log("Selected invoice (raw):", invoice);
     setShowInvoice(true);
   };
 
@@ -157,7 +161,8 @@ function CustomerInvoice() {
 
       {/* ✅ Invoice Modal */}
       <InvoiceModal isOpen={showInvoice} onClose={() => setShowInvoice(false)}>
-        <InvoicePrint invoice={selectedInvoice} />
+        {/* <InvoicePrint invoice={selectedInvoice} /> */}
+        <SalesInvoicePrint invoice={selectedInvoice} />
       </InvoiceModal>
     </div>
   );

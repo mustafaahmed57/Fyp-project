@@ -171,7 +171,7 @@ const handleDelete = (id) => {
 };
 
 
-  const columns = ['customerCode', 'name', 'email', 'contact', 'address', 'city', 'country','actions' ];
+  const columns = ['customerCode', 'name', 'email', 'contact', 'address', 'city', 'country','createdAt','actions' ];
   const columnLabels = {
     customerCode: 'Customer Code',
     fullName: 'Full Name',
@@ -180,6 +180,7 @@ const handleDelete = (id) => {
     address: 'Address',
     city: 'City',
     country: 'Country',
+     createdAt: 'Created At',
     actions: 'Actions'
     
     
@@ -187,19 +188,20 @@ const handleDelete = (id) => {
 
   const tableRows = customers.map((c, index) => ({
   ...c,
+  createdAt: new Date(c.createdAt).toLocaleString(), // readable format
   actions: (
     <>
       <button className="btn edit-btn" onClick={() => handleEdit(index)}>Edit</button>
       <button className="btn delete-btn" onClick={() => handleDelete(c.id)} style={{ marginLeft: '6px' }}>
         Delete
       </button>
-    </>
+    </> 
   )
 }));
 
 
   return (
-    <div style={{ paddingLeft: '30px', paddingRight: '30px'  }}>
+    <div>
       <h2>Customers</h2>
       <FormBuilder
   fields={fields}

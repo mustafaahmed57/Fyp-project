@@ -63,6 +63,7 @@ const [editingId, setEditingId] = useState(null);
   useEffect(() => {
     fetchReceipts();
     fetchPOs();
+    setFormValues({ status: 'Active' }); // 👈 Set default here
   }, []);
 
   const poOptions = poList.map(po => ({
@@ -109,7 +110,7 @@ const [editingId, setEditingId] = useState(null);
     { name: 'quantityReceived', label: 'Quantity Received', type: 'number', disabled: isEditing },
     { name: 'receiptDate', label: 'Receipt Date', type: 'date', min, max, disabled: isEditing },
     { name: 'remarks', label: 'Remarks', type: 'textarea',disabled: isEditing},
-    { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Used', 'Cancelled'] }
+    { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Used', 'Cancelled'], disabled: !isEditing}
   ];
 
   const handleSubmit = (data) => {
@@ -179,6 +180,7 @@ fetch(url, {
     toast.success(isEditing ? "Receipt updated ✅" : "Receipt saved ✅");
     setFormValues(initialFormValues);
     setIsEditing(false);
+    setFormValues({ status: 'Active' }); // 👈 Reset to default after submit
     setEditingId(null);
     fetchReceipts();
     if (!isEditing) {
@@ -287,8 +289,8 @@ const handleDelete = async (id) => {
   };
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Goods Receipt</h2>
+    <div style={{ paddingLeft: '15px', paddingRight: '10px' }}>
+      <h2 >Goods Receipt (GRN)</h2>
       <FormBuilder
         fields={fields}
         initialValues={formValues}

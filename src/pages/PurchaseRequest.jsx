@@ -43,6 +43,7 @@ function PurchaseRequest() {
     fetchRequests();
     fetchUsers();
     fetchProducts();
+    setFormValues({ status: 'Active' }); // 👈 Set default here
   }, []);
 
  const fields = [
@@ -63,7 +64,8 @@ function PurchaseRequest() {
       { label: 'Used', value: 'Used' },
       { label: 'Cancelled', value: 'Cancelled' }
     ],
-    readOnly: false  // 🔓 Always editable
+    // readOnly: false  // 🔓 Always editable
+     disabled: !isEditing  // 👈 disabled when creating, enabled when editing
   }
 ];
 
@@ -166,7 +168,8 @@ throw new Error(msg);
 
 
       toast.success(`Request ${isEditing ? 'updated' : 'submitted'} ✅`);
-      setFormValues({});
+      // setFormValues({});
+      setFormValues({ status: 'Active' }); // 👈 Reset to default after submit
       setIsEditing(false);
       fetchRequests();
       if (!isEditing) setTimeout(() => navigate('/purchase-order'), 2000);
@@ -247,8 +250,8 @@ throw new Error(msg);
 
 
   return (
-    <div style={{ paddingLeft: '30px', paddingRight: '30px' }}>
-      <h2>Purchase Request</h2>
+    <div style={{ paddingLeft: '15px', paddingRight: '10px' }}>
+      <h2>Purchase Request (PR)s</h2>
       <FormBuilder
         fields={fields}
         initialValues={formValues}

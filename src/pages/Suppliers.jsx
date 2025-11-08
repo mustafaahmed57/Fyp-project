@@ -134,8 +134,8 @@ function Suppliers() {
   }));
 
   return (
-    <div style={{ paddingLeft: '30px', paddingRight: '30px' }}>
-      <h2>Suppliers</h2>
+    <div style={{ paddingLeft: '15px', paddingRight: '10px' }}>
+      <h2>Suppliers (Master Data)</h2>
       <FormBuilder
   fields={fields}
   initialValues={formValues}

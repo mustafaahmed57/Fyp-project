@@ -8,15 +8,22 @@ function DeliveryNote() {
   const [orders, setOrders] = useState([]);
 
   // 🔁 Load Approved Sales Orders
+  // useEffect(() => {
+  //   fetch('http://localhost:5186/api/SalesOrder')
+  //     .then(res => res.json())
+  //     .then(data => {
+  //       const approved = data.filter(o => o.status === 'Approved');
+  //       setOrders(approved);
+  //     })
+  //     .catch(() => toast.error("Failed to load sales orders"));
+  // }, []);
   useEffect(() => {
-    fetch('http://localhost:5186/api/SalesOrder')
-      .then(res => res.json())
-      .then(data => {
-        const approved = data.filter(o => o.status === 'Approved');
-        setOrders(approved);
-      })
-      .catch(() => toast.error("Failed to load sales orders"));
-  }, []);
+  fetch('http://localhost:5186/api/SalesOrder/active')
+    .then(res => res.json())
+    .then(data => setOrders(data))
+    .catch(() => toast.error("Failed to load sales orders"));
+}, []);
+
 
   // 🔁 Load Delivery Notes
   useEffect(() => {
@@ -50,7 +57,8 @@ function DeliveryNote() {
       name: 'status',
       label: 'Status',
       type: 'select',
-      options: ['Pending', 'Delivered']
+      // options: ['Active', 'Delivered']
+      options: ['Active', 'Used', 'Cancelled'],
     }
   ];
 
@@ -70,7 +78,7 @@ function DeliveryNote() {
           // deliveredQuantity: selected.quantityOrdered,
           // Default delivery date to today:
           deliveryDate: new Date().toISOString().split('T')[0],
-          status: 'Pending'
+          status: 'Active'
         }));
       }
     }
@@ -113,7 +121,7 @@ function DeliveryNote() {
 
   const columns = [
     'deliveryCode',
-    'salesOrderID',
+    // 'salesOrderID',
     'customerName',
     'customerContact',
     'customerEmail',
@@ -124,9 +132,9 @@ function DeliveryNote() {
     'deliveryDate',
     'status'
   ];
-
+  
   return (
-    <div style={{ paddingLeft: '30px', paddingRight: '30px' }}>
+    <div>
       <h2>Delivery Note</h2>
       <FormBuilder
         fields={fields}

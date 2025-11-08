@@ -14,6 +14,7 @@ function ProductManagement() {
   const [products, setProducts] = useState([]);
   const [formValues, setFormValues] = useState({});
   const [editId, setEditId] = useState(null);
+  const isEditing = !!editId;
 
   // ✅ Load products initially
   const fetchProducts = async () => {
@@ -30,36 +31,41 @@ function ProductManagement() {
     fetchProducts();
   }, []);
 
-  const fields = [
-    { name: 'productCode', label: 'Product Code', type: 'text', disabled: true },
-    { name: 'name', label: 'Product Name', type: 'text' },
-    {
-      name: 'category',
-      label: 'Category',
-      type: 'select',
-      options: ['Raw Material', 'Semi Finished Goods', 'Finished Goods', 'Packaging']
-    },
-    {
-      name: 'uom',
-      label: 'Unit of Measure (UOM)',
-      type: 'select',
-      options: ['PCS', 'SHT', 'MTR', 'KG', 'BOX']
-    },
-    { name: 'stock', label: 'Stock Quantity', type: 'number' },
-    { name: 'price', label: 'Selling Price', type: 'number' }, // ✅ New field
-    { name: 'costPrice', label: 'Cost Price', type: 'number' }, // ✅ New field
-    {
-      name: 'status',
-      label: 'Status',
-      type: 'select',
-      options: ['Active', 'Inactive', 'Discontinued']
-    },
-    {
-      name: 'description',
-      label: 'Description',
-      type: 'textarea'
-    }
-  ];
+const fields = [
+  { name: 'productCode', label: 'Product Code', type: 'text', disabled: true },
+  { name: 'name', label: 'Product Name', type: 'text', disabled: isEditing },
+  {
+    name: 'category',
+    label: 'Category',
+    type: 'select',
+    options: ['Raw Material', 'Semi Finished Goods', 'Finished Goods', 'Packaging'],
+    disabled: isEditing
+  },
+  {
+    name: 'uom',
+    label: 'Unit of Measure (UOM)',
+    type: 'select',
+    options: ['PCS', 'SHT', 'MTR', 'KG', 'BOX'],
+    disabled: isEditing
+  },
+  { name: 'stock', label: 'Stock Quantity', type: 'number', disabled: isEditing },
+  { name: 'price', label: 'Selling Price', type: 'number', disabled: isEditing },
+  { name: 'costPrice', label: 'Cost Price', type: 'number', disabled: isEditing },
+  {
+    name: 'status',
+    label: 'Status',
+    type: 'select',
+    options: ['Active', 'Inactive', 'Discontinued'],
+    disabled: false // always enabled for editing status
+  },
+  {
+    name: 'description',
+    label: 'Description',
+    type: 'textarea',
+    disabled: isEditing
+  }
+];
+
 
   const handleCategoryChange = async (selectedCategory) => {
     let prefix = '';
@@ -120,9 +126,15 @@ function ProductManagement() {
       setEditId(null);
       fetchProducts();
     } catch (err) {
-      console.error('Submit error:', err);
-      toast.error('Error saving product ❌');
-    }
+  console.error('Submit error:', err);
+  // Extract backend validation message if available
+  const message =
+    err.response?.data?.message ||
+    err.response?.data?.errors?.[0] ||
+    'Error saving product ❌';
+  toast.error(message);
+}
+
   };
 
   const handleEdit = (index) => {
@@ -153,11 +165,32 @@ function ProductManagement() {
     'costPrice', // ✅ Column added
     'status',
     'description',
-    // 'actions'
+     'createdAt',    // New column
+  'updatedAt',    // New column
+    'actions'
   ];
 
   const rows = products.map((product, index) => ({
     ...product,
+     createdAt: new Date(product.createdAt).toLocaleString('en-GB', {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: false
+}),
+updatedAt: product.updatedAt ? new Date(product.updatedAt).toLocaleString('en-GB', {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: false
+}) : 'N/A',
+
     actions: (
       <div className="action-buttons">
         <button className="btn edit-btn" onClick={() => handleEdit(index)}>Edit</button>

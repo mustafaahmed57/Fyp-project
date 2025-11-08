@@ -52,11 +52,21 @@ function PurchaseOrder() {
       .catch(() => toast.error("Failed to load Suppliers"));
   };
 
+  // useEffect(() => {
+  //   fetchPOs();
+  //   fetchPRs();
+  //   fetchSuppliers();
+    
+  // }, []);
   useEffect(() => {
-    fetchPOs();
-    fetchPRs();
-    fetchSuppliers();
-  }, []);
+  fetchPOs();
+  fetchPRs();
+  fetchSuppliers();
+  if (!isEditing) {
+    setFormValues({ status: 'Active' }); // ✅ Default value
+  }
+}, [isEditing]);
+
 
   const handleFieldChange = (name, value, setFormValues) => {
     setFormValues((prev) => {
@@ -118,7 +128,8 @@ function PurchaseOrder() {
           fetchPOs();
         }
         toast.success(isEditing ? "Order updated ✅" : "Order created ✅");
-        setFormValues({});
+        // setFormValues({});
+        setFormValues({ status: 'Active' }); // ✅ Reset to Active
         setIsEditing(false);
       })
       .catch(() => toast.error("Error submitting PO ❌"));
@@ -169,7 +180,7 @@ const handleEdit = (selected) => {
     { name: 'pricePerUnit', label: 'Price Per Unit', type: 'number', disabled: true },
     { name: 'totalPrice', label: 'Total Price', type: 'number', disabled: true },
     { name: 'poDate', label: 'PO Date', type: 'date', min, max, disabled: isEditing },
-    { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Used', 'Cancelled'] }
+    { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Used', 'Cancelled'],  disabled: !isEditing }
   ];
 
   const columns = [
@@ -211,8 +222,8 @@ const handleEdit = (selected) => {
 
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Purchase Order</h2>
+    <div style={{ paddingLeft: '15px', paddingRight: '10px'}}>
+      <h2>Purchase Order (PO)</h2>
       <FormBuilder
         fields={fields}
         initialValues={formValues}

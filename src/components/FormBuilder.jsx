@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Select from 'react-select'; // ✅ New import
 
 function FormBuilder({ fields, onSubmit, initialValues = {}, onFieldChange, checkDuplicate }) {
   const [formData, setFormData] = useState(initialValues);

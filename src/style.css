@@ -336,7 +336,7 @@ FORM WORK HERE */
   border-radius: 8px;
   box-shadow: 0 5px 20px rgba(0,0,0,0.05);
   width: 100%;
-  max-width: 1000px;      /* 🔥 allows wider layout */
+  max-width: 1510px;      /* 🔥 allows wider layout */
   margin-left: 0;          /* align left like ERP style */
   
 }
@@ -863,4 +863,35 @@ for invoicing modal */
 .invoice-modal-body {
   max-height: 80vh;
   overflow-y: auto;
+}
+
+
+/* table ka code idhar hay layout wala */
+/* Table Wrapper: Horizontal scroll enable */
+.table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+}
+
+/* Table Styling */
+.table-wrapper table {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: auto; /* or fixed if you want equal column widths */
+}
+
+/* Table cells: prevent wrapping & ellipsis */
+.table-wrapper th,
+.table-wrapper td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px; /* Adjust as needed per column */
+}
+
+/* Optional: better spacing */
+.table-wrapper th,
+.table-wrapper td {
+  padding: 8px;
+  border: 1px solid #ddd;
 }

@@ -23,6 +23,10 @@ import WelcomePage from './pages/WelcomePage';
 import Suppliers from './pages/Suppliers';
 import Customer from './pages/Customer'; // ✅ adjust path if needed
 import CustomerInvoice from './pages/CustomerInvoice';
+import BOM from './pages/Bom';
+import ProductionPlan from './pages/ProductionPlan';
+import ProductionOrder from './pages/ProductionOrder';
+import ProductionCompletion from './pages/ProductionCompletion';
 
 
 
@@ -63,7 +67,10 @@ function App() {
               <Route path="/welcome" element={<WelcomePage />} />
               <Route path="suppliers" element={<Suppliers />} />
               <Route path="/customer-invoice" element={<CustomerInvoice />} />
-
+              <Route path="/bom" element={<BOM />} />
+              <Route path="/production-plan" element={<ProductionPlan />} />
+              <Route path="/production-order" element={<ProductionOrder />} />
+              <Route path="/production-completion" element={<ProductionCompletion />} />
             </Route>
           ) : (
             // ✅ Redirect if not logged in
